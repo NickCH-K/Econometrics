@@ -1,0 +1,262 @@
+- Class: meta
+  Course: Econometrics
+  Lesson: Ordinary Least Squares Part 1
+  Author: Nick Huntington-Klein
+  Type: Standard
+  Organization: Seattle University
+  Version: 2.4.5
+
+- Class: text
+  Output: |-
+   Welcome to Ordinary Least Squares Part 1.
+   
+   In this Swirl lesson we'll be walking through...
+   
+   1. How to load in a data set
+   
+   2. How to look at that data set
+   
+   3. How to run an ordinary least squares regression
+   
+   4. How to look at the results of the regression
+   
+   5. How to graph the results of the regression
+
+- Class: text
+  Output: |-
+   This lesson will make use of the **tidyverse**, **vtable**, and **jtools** packages.
+   
+   So make sure those are installed first!
+   
+   If they're not installed, you can hit Escape to exit this course now and then install them with install.packages(c('tidyverse','vtable','jtools')) before starting back up.
+
+- Class: cmd_question
+  Output: |- 
+   Let's start by loading up the packages we'll need. 
+ 
+   Use the library() function to load the tidyverse package.
+  CorrectAnswer: library(tidyverse)
+  AnswerTests: omnitest(correctExpr='library(tidyverse)')
+  Hint: Take the name of the package and feed that to the library() function.
+
+- Class: cmd_question
+  Output: |- 
+   Great! Now do vtable.
+  CorrectAnswer: library(vtable)
+  AnswerTests: omnitest(correctExpr='library(vtable)')
+  Hint: Take the name of the package and feed that to the library() function.
+
+- Class: cmd_question
+  Output: |- 
+   And finally jtools.
+  CorrectAnswer: library(jtools)
+  AnswerTests: omnitest(correctExpr='library(jtools)')
+  Hint: Take the name of the package and feed that to the library() function.
+
+- Class: cmd_question
+  Output: |-
+   Now we are going to load in some data.
+   
+   There are two main ways to load in data: from *file* or from a *package*.
+   
+   Let's work from a package first.
+   
+   Many packages come with data pre-loaded. You can see what data sets are there by typing data( and seeing what pops up.
+   
+   For now, load up the pre-loaded data set mtcars using the data() function.
+  CorrectAnswer: data(mtcars)
+  AnswerTests: any_of_exprs('data(mtcars)','data("mtcars")')
+  Hint: Take the name of the data set, mtcars, and feed that to the data() function.
+
+- Class: cmd_question
+  Output: |-
+   When data comes from a package, it shows up as an object with the name you called it as.
+   
+   Also, data you get this way often comes with a help file.
+   
+   Use help(mtcars) to see descriptions of all the variables.
+  CorrectAnswer: help(mtcars)
+  AnswerTests: omnitest(correctExpr='help(mtcars)')
+  Hint: Just type help(mtcars).
+
+- Class: cmd_question
+  Output: |-
+   Let's look at the data in other ways too.
+   
+   Try clicking on the data object in the Environment window to look at it like a spreadsheet.
+   
+  CorrectAnswer: View(mtcars)
+  AnswerTests: omnitest(correctExpr='View(mtcars)')
+  Hint: Just click on "mtcars" in the Environment tab in the top-right. Or, type View(mtcars).
+
+
+- Class: cmd_question
+  Output: |-
+   Then, send it to the vtable() function to get information on all the variables.
+  CorrectAnswer: vtable(mtcars)
+  AnswerTests: expr_uses_func('vtable')
+  Hint: Take the name of the data set, mtcars, and send it to the vtable() function.
+
+- Class: exact_question
+  Output: What is the highest value that the cyl variable takes?
+  CorrectAnswer: 8
+  AnswerTests: omnitest(correctVal=8)
+  Hint: Look at the "Values" column of the vtable.
+
+- Class: cmd_question
+  Output: |-
+   The other way to get data into R is by loading it from a file.
+   
+   The file could be on your computer or could be online.
+   
+   Generally, this requires you take the file path or URL and make it into a string by putting quotes around it ('' or "").
+   
+   We're going to be getting our data file from https://vincentarelbundock.github.io/Rdatasets/csv/Ecdat/USFinanceIndustry.csv
+   
+   Turn that URL into a string using quotes.
+  CorrectAnswer: "'https://vincentarelbundock.github.io/Rdatasets/csv/Ecdat/USFinanceIndustry.csv'"
+  AnswerTests: omnitest(correctVal='https://vincentarelbundock.github.io/Rdatasets/csv/Ecdat/USFinanceIndustry.csv')
+  Hint: Just type a quote (' or "), then paste in the URL, then put the ending quote.
+
+- Class: cmd_question
+  Output: |- 
+   Now put that string into the read_csv() function (from the tidyverse).
+   
+   This will read the data from the internet. However, we also need to *store* the data as an object in R.
+   
+   So use = or <- to save the data as df.
+  CorrectAnswer: df <- read_csv('https://vincentarelbundock.github.io/Rdatasets/csv/Ecdat/USFinanceIndustry.csv')
+  AnswerTests: identical(df,suppressMessages(suppressWarnings(read_csv('https://vincentarelbundock.github.io/Rdatasets/csv/Ecdat/USFinanceIndustry.csv'))))
+  Hint: |- 
+   We know we can store objects using the format
+   
+   a <- 2
+   
+   which stores the number 2 in the object a.
+   
+   Now we want to store the results of our read_csv() function.
+
+- Class: cmd_question
+  Output: |- 
+   Now let's finally build a regression.
+   
+   At its core, a regression in R requires two things: a formula and a data set.
+   
+   We have the data set, so let's make a formula.
+   
+   A formula in R (when you have only two variables) is of the format
+   
+   Y ~ X
+   
+   where Y is the dependent variable and X is the independent variable.
+   
+   Create a formula where mpg is the dependent variable and hp is the independent variable.
+  CorrectAnswer: mpg ~ hp
+  AnswerTests: omnitest(correctVal=mpg~hp)
+  Hint: Just rewrite Y ~ X but with mpg in place of Y and hp in place of X.
+
+- Class: cmd_question
+  Output: |-
+   Now we can put that formula into the lm() function to run a regression.
+   
+   Use the lm() function. Put the mpg ~ hp formula in there first.
+   
+   Then, specify data = mtcars, since you're using the mtcars data set.
+  CorrectAnswer: lm(mpg~hp, data = mtcars)
+  AnswerTests: omnitest(correctVal=lm(mpg~hp, data = mtcars))
+  Hint: lm() takes two arguments here. The first is mpg~hp. Then put a comma to separate the arguments. Then data = mtcars.
+
+- Class: exact_question
+  Output: In this OLS line, what is the slope on hp? Round to the thousandths place (.001)
+  CorrectAnswer: -.068
+  AnswerTests: omnitest(correctVal=-.068)
+  Hint: The slope coefficient for hp is listed underneath hp on the regression output.
+
+- Class: cmd_question
+  Output: |-
+   Most of the time, we want to see a fuller description of the regression, not just the coefficients.
+
+   For this, we will need to store our regression object so we can pass it to other functions.
+
+   Rerun the same regression as in the last step, but save it to the object my_model.
+  CorrectAnswer: my_model <- lm(mpg~hp, data = mtcars)
+  AnswerTests: identical(predict(my_model), predict(lm(mpg~hp, data = mtcars)))
+  Hint: Take the lm() function you used in the last step (you can just hit the up key to reuse the code) and use <- to store it as my_model.
+
+- Class: cmd_question
+  Output: |-
+   Let's look at a table summarizing the regression.
+
+   First, use the base-R standard summary() function to summarize your regression.
+  CorrectAnswer: summary(my_model)
+  AnswerTests: expr_uses_func('summary')
+  Hint: Take my_model and put it in the summary() function.
+
+- Class: cmd_question
+  Output: Next, let's get a nicer look using export_summs() from the jtools package.
+  CorrectAnswer: export_summs(my_model)
+  AnswerTests: expr_uses_func('export_summs')
+  Hint: Take your my_model object and put it in the function export_summs().
+
+- Class: cmd_question
+  Output: |- 
+   Now let's get a nice graph of our regression results using effect_plot() from the jtools package.
+   
+   effect_plot() needs three things: 
+   
+   1. Your regression object.
+   
+   2. The name of the X variable as a string for the pred= option.
+   
+   3. If you want the points to be plotted in addition to the line (and we do), set plot.points = TRUE.
+  CorrectAnswer: effect_plot(my_model, pred = 'hp', plot.points = TRUE)
+  AnswerTests: omnitest(correctVal=effect_plot(my_model, pred = 'hp', plot.points = TRUE))
+  Hint: effect_plot() is just like our other functions except we need to specify multiple options. Just separate each option with a comma.
+
+- Class: cmd_question
+  Output: |-
+   Don't think we forgot about that data we loaded in with df earlier!
+
+   We are going to look at how corporate profits predict finanical-sector profits.
+   
+   Run a regression using the df data with Financial as the dependent variable and CorporateProfitsAdj as the independent variable, and save it as reg2.
+  CorrectAnswer: reg2 <- lm(Financial ~ CorporateProfitsAdj, data = df)
+  AnswerTests: identical(predict(reg2), predict(lm(Financial ~ CorporateProfitsAdj, data = df)))
+  Hint: Use the exact same code as with the mtcars regression, but now the data is df, we have Financial instead of mpg, and we have CorporateProfitsAdj instead of hp.
+
+- Class: cmd_question
+  Output: |- 
+   Just as one last thing, we're going to do something strange.
+   
+   Use the following code to divide CorporateProfitsAdj by 2 and save it as the new data set df2:
+   
+   df2 <- df %>%
+       mutate(CorporateProfitsAdj = CorporateProfitsAdj/2)
+  CorrectAnswer: df <- df %>%
+       mutate(CorporateProfitsAdj = CorporateProfitsAdj/2)
+  AnswerTests: identical(df2, df %>% mutate(CorporateProfitsAdj = CorporateProfitsAdj/2))
+  Hint: Just copy in the code!
+
+- Class: cmd_question
+  Output: Now regress Financial on CorporateProfitsAdj using the df2 data set and store the result as reg3.
+  CorrectAnswer: reg3 <- lm(Financial ~ CorporateProfitsAdj, data = df2)
+  AnswerTests: identical(predict(reg3), predict(lm(Financial ~ CorporateProfitsAdj, data = df2)))
+  Hint: Use the exact same regression code as last time but use data = df2 now.
+
+- Class: cmd_question
+  Output: Put both reg2 and reg3 into export_summs() so you can look at the results side-by-side.
+  CorrectAnswer: export_summs(reg2, reg3)
+  AnswerTests: omnitest(correctVal=export_summs(reg2, reg3))
+  Hint: Just type export_summs(reg2, reg3)
+
+- Class: mult_question
+  Output: |- 
+   The coefficient on profits in Model 2 (from df2, where we halved profits) is exactly twice as large as the coefficient on profits in Model 1 (from df).
+   
+   Why does this doubling make sense?
+
+
+  AnswerChoices: Because the meaning of "a one unit change in X" has doubled; Because of sampling variation; Because OLS uses squared residuals, leading to the coefficient being doubled; Because when the variable has halved, the line had to move down to accommodate it
+  CorrectAnswer: Because the meaning of "a one unit change in X" has doubled
+  AnswerTests: omnitest(correctVal='Because the meaning of "a one unit change in X" has doubled')
+  Hint: Think about what the slope coefficient in OLS means in terms of the X variable.
