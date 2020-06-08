@@ -153,9 +153,11 @@
    where Y is the dependent variable and X is the independent variable.
    
    Create a formula where mpg is the dependent variable and hp is the independent variable.
-  CorrectAnswer: mpg ~ hp
-  AnswerTests: omnitest(correctVal=mpg ~ hp)
-  Hint: Just rewrite Y ~ X but with mpg in place of Y and hp in place of X.
+   
+   Write it as a string (enclose it in quotes '') - you wouldn't normally do this to a formula but Swirl needs it that way.
+  CorrectAnswer: "'mpg ~ hp'"
+  AnswerTests: any_of_exprs('mpg~hp','mpg ~ hp','mpg~ hp','mpg ~hp')
+  Hint: Just rewrite Y ~ X but with mpg in place of Y and hp in place of X. Then put it in quotes.
 
 - Class: cmd_question
   Output: |-
@@ -205,7 +207,7 @@
 
    Rerun the same regression as in the last step, but save it to the object my_model.
   CorrectAnswer: my_model <- lm(mpg~hp, data = mtcars)
-  AnswerTests: identical(predict(my_model), predict(lm(mpg~hp, data = mtcars)))
+  AnswerTests: ifelse(exists('my_model'),identical(predict(my_model), predict(lm(mpg~hp, data = mtcars))),FALSE)
   Hint: Take the lm() function you used in the last step (you can just hit the up key to reuse the code) and use <- to store it as my_model.
 
 - Class: cmd_question
@@ -246,7 +248,7 @@
    
    Run a regression using the df data with Financial as the dependent variable and CorporateProfitsAdj as the independent variable, and save it as reg2.
   CorrectAnswer: reg2 <- lm(Financial ~ CorporateProfitsAdj, data = df)
-  AnswerTests: identical(predict(reg2), predict(lm(Financial ~ CorporateProfitsAdj, data = df)))
+  AnswerTests: ifelse(exists('reg2'),identical(predict(reg2), predict(lm(Financial ~ CorporateProfitsAdj, data = df))),FALSE)
   Hint: Use the exact same code as with the mtcars regression, but now the data is df, we have Financial instead of mpg, and we have CorporateProfitsAdj instead of hp.
 
 - Class: cmd_question
@@ -265,8 +267,8 @@
 - Class: cmd_question
   Output: Now regress Financial on ProfitsHalf using the df2 data set and store the result as reg3.
   CorrectAnswer: reg3 <- lm(Financial ~ ProfitsHalf, data = df2)
-  AnswerTests: identical(predict(reg3), predict(lm(Financial ~ ProfitsHalf, data = df2)))
-  Hint: Use the exact same regression code as last time but use data = df2 nowand replace CorporateProfitsAdj with ProfitsHalf.
+  AnswerTests: ifelse(exists('reg3'),identical(predict(reg3), predict(lm(Financial ~ ProfitsHalf, data = df2))),FALSE)
+  Hint: Use the exact same regression code as last time but use data = df2 nowand replace CorporateProfitsAdj with ProfitsHalf. Did you forget to save it as reg3? If you accidentally overwrite reg2 you might want to re-make it first.
 
 - Class: cmd_question
   Output: Put both reg2 and reg3 into export_summs() so you can look at the results side-by-side.

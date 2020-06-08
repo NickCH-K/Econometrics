@@ -1,0 +1,345 @@
+- Class: meta
+  Course: Econometrics
+  Lesson: Ordinary Least Squares Part 2
+  Author: Nick Huntington-Klein
+  Type: Standard
+  Organization: Seattle University
+  Version: 2.4.5
+
+- Class: text
+  Output: |-
+   In this lesson we will be going over
+   
+   - Check for skewed data and take a log
+   
+   - Finding predictions and residuals from a regression
+   
+   - The effects of omitted variable bias
+   
+   - Detecting heteroskedasticity
+   
+   - Using heteroskedasticity-robust and cluster-robust standard errors
+
+- Class: text
+  Output: |-
+   For this lesson you will need the packages **tidyverse**, **Ecdat**, **jtools**, **huxtable**, and **vtable**
+   
+   If you don't have these, you'll need to install them. You can Escape or bye() out of this, install them with install.packages(c('tidyverse','Ecdat','jtools','huxtable','vtable')), and then swirl() to get back in.
+   
+   If you've already done Ordinary Least Squares Part 1, the only one you might not still have is Ecdat. You can install that with install.packages('Ecdat')
+
+- Class: cmd_question
+  Output: |-
+   Next let's load our libraries. You can just copy/paste the text below, or type skip() and all the libraries will be loaded.
+
+   library(tidyverse)
+   library(Ecdat)
+   library(vtable)
+   library(jtools)
+  CorrectAnswer: |-
+   library(tidyverse)
+   library(Ecdat)
+   library(vtable)
+   library(jtools)
+  AnswerTests: sum(paste0('package:',c('tidyverse','Ecdat','vtable','jtools')) %in% search()) == 4
+  Hint: Copy/paste! Or just type skip()
+  
+  
+
+- Class: cmd_question
+  Output: |- 
+   Let's load up some data to work with.
+   
+   Load up the MedExp data from the Ecdat package. This has information on medical expenditures made by individuals.
+  CorrectAnswer: data(MedExp)
+  AnswerTests: omnitest(correctExpr='data(MedExp)')
+  Hint: Just type data(MedExp)
+
+- Class: cmd_question
+  Output: |-
+   As always, we want to explore our data.
+   
+   This data came from a package, so it has a help file. Type help(MedExp) to look at the help file.
+  CorrectAnswer: help(MedExp)
+  AnswerTests: omnitest(correctExpr='help(MedExp)')
+  Hint: Just type help(MedExp).
+
+- Class: cmd_question
+  Output: |-
+   In this data, we are going to be looking at the relationship between age and med (medical expenditures).
+   
+   You can limit the data to just the variables you want with select() from the dplyr package (in **tidyverse**).
+   
+   For example,
+   
+   df <- df %>%
+      select(A, B)
+   
+   Would take the df data, pick only the variables "A" and "B" in that data, and then overwrite the original df (with df <-)
+   
+   Use this to pick just the age and med variables from MedExp, and overwrite the original MedExp
+  CorrectAnswer: MedExp <- MedExp %>% select(age, med)
+  AnswerTests: sum(c('age','med') %in% names(MedExp)) == 2 & length(names(MedExp)) == 2
+  Hint: |- 
+   Take MedExp, pipe (%>%) it to the select function, and then list the variables you want to keep.
+   
+   If you accidentally changed MedExp in some other way, you may want to start over with data(MedExp) again.
+
+- Class: cmd_question
+  Output: |-
+   Next, let's look a little closer at our variables.
+   
+   Use sumtable(MedExp) (from **vtable**) to look at some statistics of your variables.
+  CorrectAnswer: sumtable(MedExp)
+  AnswerTests: expr_uses_func('sumtable')
+  Hint: sumtable(MedExp) or MedExp %>% sumtable()
+
+- Class: cmd_question
+  Output: |- 
+   It looks like the maximum of med is way way above most of the values (compare the 75th percentile to the maximum). Also, the mean is really high - above the 75th percentile, even!
+
+   This suggests highly skewed data, with a lot of tiny values and a few really huge values (people who rack up enormous hospital bills).
+   
+   Let's take a look and see if that's true. Let's look at the distribution of med with
+   
+   ggplot(MedExp, aes(x = med)) + geom_density()
+   
+   Notice that this uses the MedExp data, puts med on the x-axis, and adds a density plot with geom_density().
+
+
+  CorrectAnswer: ggplot(MedExp, aes(x = med)) + geom_density()
+  AnswerTests: omnitest(correctVal=ggplot(MedExp, aes(x = med)) + geom_density())
+  Hint: Just copy/paste in the ggplot code.
+
+- Class: cmd_question
+  Output: |- 
+   Yeah, that's definitely a skewed distribution! Look how much weight there is on the very left, and then how long the right tail is.
+   
+   Often, it's hard to fit a straight line on highly skewed data, because of those way-out-there observations.
+   
+   Let's look at our relationship directly and see if a straight line (OLS) seems appropriate.
+   
+   ggplot(MedExp, aes(x = age, y = med)) + geom_point()
+   
+   Notice this uses the MedExp data and plots a scatterplot (geom_point()) with age on the x axis and med on the y axis.
+  CorrectAnswer: ggplot(MedExp, aes(x = age, y = med)) + geom_point()
+  AnswerTests: omnitest(correctVal=ggplot(MedExp, aes(x = age, y = med)) + geom_point())
+  Hint: Copy/paste the ggplot code.
+
+- Class: cmd_question
+  Output: |- 
+   Looks pretty bad! Often in these kinds of cases we can get back to a straight line by taking the logarithm of the skewed variable. Let's try it.
+  
+   ggplot(MedExp, aes(x = age, y = log(med))) + geom_point()
+   
+   The only change from the last code is that the y axis has the log of med, not med itself
+  CorrectAnswer: ggplot(MedExp, aes(x = age, y = log(med))) + geom_point()
+  AnswerTests: omnitest(correctVal=ggplot(MedExp, aes(x = age, y = log(med))) + geom_point())
+  Hint: Copy/paste the ggplot code.
+
+- Class: cmd_question
+  Output: |-
+   Our plan now is to work with log(med) instead of med.
+   
+   One problem is that any observations with med = 0 won't work, since log(0) is undefined.
+   
+   We'll worry about this later. Let's just drop them for now with filter.
+   
+   df <- df %>%
+      filter(X != 3)
+
+   is **dplyr** code that will:
+   
+   - Check if the variable X is NOT equal to 3 (X != 3)
+   
+   - Then filter the observations to only keep non-3 values. (filter())
+   
+   Use this to keep only observations where med is not 0.
+  CorrectAnswer: MedExp <- MedExp %>% filter(med != 0)
+  AnswerTests: sum(MedExp$med == 0) == 0
+  Hint: Take the dplyr code provided and make it about MedExp instead of df, med instead of X, and 0 instead of 3.
+
+
+- Class: cmd_question
+  Output: |- 
+   Now we're ready for a regression.
+   
+   Using the MedExp data, regress log(med) on age, and save the regression object as med_age.
+   
+  CorrectAnswer: med_age <- lm(log(med)~age, data = MedExp)
+  AnswerTests: ifelse(exists('med_age'),identical(predict(med_age),predict(lm(log(med)~age, data = MedExp))),FALSE)
+  Hint: Remember, our OLS formula is lm(Y~X, data = nameofdataset)
+
+- Class: cmd_question
+  Output: Use export_summs() to look at the regression results.
+  CorrectAnswer: export_summs(med_age)
+  AnswerTests: omnitest(correctVal=export_summs(med_age))
+  Hint: Just type export_summs(med_age).
+
+- Class: mult_question
+  Output: The slope coefficient on age is 0.02. Interpret this coefficient.
+  AnswerChoices: An age increase of 1 year is associated with a 0.02 increase in med.;An age increase of 1 year is associated with a 0.02 increase in log(med).; An increase in log(med) of one unit associated with a 0.02 increase in age.;An increase in med of one unit associated with a 0.02 increase in age.
+  CorrectAnswer: An age increase of 1 year is associated with a 0.02 increase in log(med).
+  AnswerTests: omnitest(correctVal='An age increase of 1 year is associated with a 0.02 increase in log(med).')
+  Hint: We're working with log(med) as our Y variable here, not med!
+
+- Class: text
+  Output: (We'll come back to this later, but a neat tip for now is that a .02 increase in log(med) can also be thought of as a 2% increase in med! So a one year increase in age is associated with a 2% increase in medical expenditures.)
+
+- Class: cmd_question
+  Output: |- 
+   Let's get the predicted values and residuals out of the regression.
+   
+   Use the predict() function with med_age to get the predicted values.
+  CorrectAnswer: predict(med_age)
+  AnswerTests: omnitest(correctVal=predict(med_age))
+  Hint: Use med_age with the predict() function.
+
+- Class: cmd_question
+  Output: |- 
+   Let's get the sum of squared residuals for this regression.
+   
+   Take resid(med_age), square it, and run it through the sum() function.
+  CorrectAnswer: resid(med_age)^2 %>% sum()
+  AnswerTests: omnitest(correctVal=resid(med_age)^2 %>% sum())
+  Hint: Start with resid(med_age). Then, square it with ^2. Finally, put it all in the sum() function.
+
+- Class: cmd_question
+  Output: |- 
+   Now let's take a look at the predictions.
+   
+   mutate() from **dplyr** can be used to add new variables to a data set.
+   
+   df <- df %>%
+      mutate(newvar = 1:10)
+
+   will add a new variable called newvar to the df data set, with the values 1 through 10.
+   
+   Add the predicted values to MedExp and call them pred.
+
+
+  CorrectAnswer: MedExp <- MedExp %>% mutate(pred = predict(med_age))
+  AnswerTests: identical(MedExp %>% pull(pred),predict(med_age))
+  Hint: |- 
+   Start with
+   
+   df <- df %>%
+      mutate(newvar = 1:10)
+      
+   THen replace df with MedExp,
+   
+   newvar with pred,
+   
+   and 1:10 with predict(med_age).
+
+- Class: cmd_question
+  Output: |- 
+   Let's see what we get!
+   
+   ggplot(MedExp, aes(x = age, y = pred)) + geom_point()
+  CorrectAnswer: ggplot(MedExp, aes(x = age, y = pred)) + geom_point()
+  AnswerTests: omnitest(correctVal=ggplot(MedExp, aes(x = age, y = pred)) + geom_point())
+  Hint: Just copy the ggplot code.
+
+- Class: text
+  Output: Notice we get a perfectly straight line - these predicted values are just following the OLS line we got!
+
+- Class: exact_question
+  Output: |-
+   Let's switch gears and talk about issues in the error term!
+   
+   We're going to create some randomly generated data that we can *know the answer* for.
+   
+   This is the code we're going to use:
+   
+   tb <- tibble(X = runif(100)) %>%
+      mutate(error = rnorm(100,mean = 1.5*X, sd = X)) %>%
+      mutate(Y = .2*X + error)
+      
+   Before we actually run an analysis, based on the way Y is constructed, what is the *true value* of beta1 (the X slope)?
+  CorrectAnswer: .2
+  AnswerTests: omnitest(correctVal=.2)
+  Hint: Look at the number that gets multiplied by X when creating Y with mutate().
+
+- Class: mult_question
+  Output: |-
+
+   This is the code we're going to use:
+   
+   tb <- tibble(X = runif(100)) %>%
+      mutate(error = rnorm(100,mean = 1.5*X, sd = X)) %>%
+      mutate(Y = .2*X + error)
+      
+   Before we actually run an analysis, once we *do* regress Y on X, will the coefficient on average be above .2, below .2, or exactly .2?
+   
+   Keep in mind: (a) the error positively affects Y, and (b) the mean = 1.5*X argument when making the error means that the higher X is, the higher the error is likely to be.
+  AnswerChoices: Higher than .2;Lower than .2;Exactly .2; No way to tell
+  CorrectAnswer: Higher than .2
+  AnswerTests: omnitest(correctVal='Higher than .2')
+  Hint: When X and Y are high together, that reflects both that X causes Y to increase, and that the error term is high when X is high, and the error term causes Y.
+
+- Class: cmd_question
+  Output: |-
+   Now let's actually create the data. Copy this in:
+   
+   tb <- tibble(X = runif(100)) %>%
+      mutate(error = rnorm(100,mean = 1.5*X, sd = X)) %>%
+      mutate(Y = .2*X + error)
+  CorrectAnswer: |-
+      tb <- tibble(X = runif(100)) %>%
+         mutate(error = rnorm(100,mean = 1.5*X, sd = X)) %>%
+         mutate(Y = .2*X + error)
+  AnswerTests: identical(names(tb), c('X','error','Y'))
+  Hint: Just copy in the code.
+
+- Class: cmd_question
+  Output: |-
+   And now regress Y on X in the tb data.
+   
+   Store the regression as biased_reg
+  CorrectAnswer: biased_reg <- lm(Y~X, data = tb)
+  AnswerTests: identical(predict(biased_reg),predict(lm(Y~X, data = tb)))
+  Hint: Run a regression as normal, with Y ~ X, and store the result as biased_reg.
+
+- Class: cmd_question
+  Output: |-
+   Look at the regression with export_summs() to see that the coefficient on X is indeed much higher than .2.
+  CorrectAnswer: export_summs(biased_reg)
+  AnswerTests: omnitest(correctVal=export_summs(biased_reg))
+  Hint: Take biased_reg and send it to export_summs().
+
+- Class: cmd_question
+  Output: And now send it to effect_plot() so we can see what's going on. Be sure to include plot.points = TRUE.
+  CorrectAnswer: effect_plot(biased_reg, pred = 'X', plot.points = TRUE)
+  AnswerTests: omnitest(correctVal=effect_plot(biased_reg, pred = 'X', plot.points = TRUE))
+  Hint: Take biased_reg and send it to effect_plot(). We want pred to be X and plot.point = TRUE.
+
+- Class: mult_question
+  Output: The effect plot is revealing an assumption that we've violated! What is it?
+  AnswerChoices: The plot shows that X is endogenous.; The plot shows heteroskedasticity.; The plot shows clustering.; The plot shows a negative relationship.; The plot shows that we haven't minimized the sum of squared residuals.
+  CorrectAnswer: The plot shows heteroskedasticity.
+  AnswerTests: omnitest(correctVal='The plot shows heteroskedasticity.')
+  Hint: We can't actually see endogeneity on a graph, we have to think about sources of endogeniety. What *can* we see on the graph?
+
+- Class: cmd_question
+  Output: |-
+   Since the variance of the residuals changes for different values of X, we have heteroskedasticity.
+   
+   This will only fix the heteroskedasticity, not the endogeneity, but run export_summs() again, this time with robust = TRUE.
+  CorrectAnswer: export_summs(biased_reg, robust = TRUE)
+  AnswerTests: omnitest(correctVal=export_summs(biased_reg, robust = TRUE))
+  Hint: It's the same export_summs() code you already used, but with the robust = TRUE option.
+
+- Class: text
+  Output: |- 
+   Well done!
+   
+   We don't have clustering here, but if we had wanted cluster-robust standard errors, instead of
+   
+   export_summs(biased_reg, robust = TRUE)
+   
+   we could have done
+   
+   export_summs(biased_reg, cluster = C)
+   
+   where C is the name of the variable we think the errors are clustered within.
