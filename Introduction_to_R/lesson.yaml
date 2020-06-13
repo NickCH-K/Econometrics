@@ -268,7 +268,9 @@
    It's very flexible. You can ask for the variable by name directly, as a string, or as a column position
    
    pull(my_data, vec1)
+   
    pull(my_data, 'vec1')
+   
    pull(my_data, 3)
    
    Would all get the vec1 column out of the my_data data frame (that third one requires it to be the third column)
