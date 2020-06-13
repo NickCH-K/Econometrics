@@ -1,0 +1,412 @@
+- Class: meta
+  Course: Econometrics
+  Lesson: Introduction to R
+  Author: Nick Huntington-Klein
+  Type: Standard
+  Organization: Seattle University
+  Version: 2.4.5
+
+- Class: text
+  Output: |- 
+   Welcome to the Swirl econometrics course.
+   
+   This first lesson is just to get you familiar with R. We will be covering:
+   
+   a. How objects work
+   
+   b. Building a vector
+   
+   c. Using a data frame
+   
+   d. Getting a variable out of a data frame
+   
+   e. Using a function (and reading its help file)
+   
+   f. The pipe %>%
+   
+   g. The dplyr commands pull(), filter(), select(), and mutate()
+   
+   Before starting, you should have the **tidyverse** package installed. If you don't, Escape out of here and type install.packages('tidyverse')
+   
+   If you get stuck, you can skip a question (and see the answer) by writing skip(). But use this sparingly or you won't learn anything!
+
+- Class: text
+  Output: |-
+   OBJECTS
+   
+   In R, just about everything is an *object*. Numbers are objects, functions are objects, data is an object, analyses are objects!
+   
+   Objects sit in memory (look over in the Environment pane to see what's loaded).
+   
+   We can: (1) create objects, (2) manipulate objects with functions, and (3) look at objects.
+
+- Class: cmd_question
+  Output: |-
+   Let's start by making an object.
+   
+   We can assign objects using <-
+   
+   a <- 1
+   
+   will create an object a and put the number 1 in that object. 
+   
+   a = 1 works too but that's not how the cool kids do it B)
+   
+   Store the number 100 in an object called d.
+  CorrectAnswer: d <- 100
+  AnswerTests: ifelse(exists('d'),d == 100,FALSE)
+  Hint: Type d <- 100.
+
+- Class: cmd_question
+  Output: |-
+   Once we have an object we may want to look at its contents.
+   
+   For something simple like d we can just look in the Environment pane and see that it's 32. But that won't work once we get to more complex stuff.
+   
+   A standard way to look at the contents of an object is to just put it on a line by itself. The code:
+   
+   a
+   
+   Will show you the contents of a. As will:
+   
+   print(a)
+   
+   Have R show you the contents of d.
+  CorrectAnswer: d   
+  AnswerTests: any_of_exprs('d','print(d)')
+  Hint: Just type d.
+
+- Class: cmd_question
+  Output: |-
+   So we've created an object and looked at it. Now we want to manipulate that object with a function.
+   
+   Let's take the logarithm of d.
+   
+   Use help(log) to look at the help file for the log function.
+  CorrectAnswer: help(log)
+  AnswerTests: omnitest(correctExpr='help(log)')
+  Hint: Type help(log)
+
+- Class: text
+  Output: |-
+   Let's parse out what we see here:
+   
+   (a) Up at the top we have a description of the function and what it does.
+   
+   (b) Then we have "Usage" which shows us the *arguments* the function takes and the order they go in (it's always functionname(argument,argument,argument))
+   
+   (c) Then it describes what its arguments mean - x should be a number or complex vector (it will take a single number too), and base should be a single number.
+   
+   (d) If you scroll down, there are Details on the funciton, a description of the kind of object you'll get back (Value)
+   
+   (e) And crucially, some Examples of how the function can be used!
+   
+   Explore the help file before moving on.
+
+- Class: cmd_question
+  Output: |- 
+   Take the natural logarithm of d.
+   
+   Two things to note while doing this:
+   
+   (a) The default base is exp(1), i.e. the base of a natural logarithm. Because it's the default value you can ignore it and don't need to set it yourself).
+   
+   (b) As long as you give the arguments *in order*, you don't need to name them explicitly. Since the arguments are log(x,base), if you just said log(10,2), it would know that x = 10 and base = 2 without you specifying log(x=10,base=2).
+  CorrectAnswer: log(d)
+  AnswerTests: omnitest(correctVal=log(d))
+  Hint: Take d and put it as the first argument of log().
+
+- Class: cmd_question
+  Output: Now take the logarithm of d with base 10. Use the log() function, don't calculate it yourself!
+  CorrectAnswer: log(d,10)
+  AnswerTests: omnitest(correctVal=log(d,10)); (expr_uses_func('log') | expr_uses_func('log10'))
+  Hint: Take d and pass it as the first argument of log(). Then make 10 the second argument.
+
+- Class: cmd_question
+  Output: Now that we've taken the logarithm of d, have R show you the contents of d again.
+  CorrectAnswer: d
+  AnswerTests: any_of_exprs('d','print(d)')
+  Hint: Just type d.
+
+- Class: cmd_question
+  Output: |-
+   Notice that even though we took the logarithm of it, d didn't change, it's still 100.
+   
+   If you want to manipulate an object *and keep the changed version*, you need to save that manipulated object as an object, either making it a new object or writing over the old one.
+   
+   Save the base-10 logarithm of d as a new object, d_log
+  CorrectAnswer: d_log <- log(d, 10)
+  AnswerTests: ifelse(exists('d_log'),d_log == log(d,10),FALSE)
+  Hint: Take the base-10 log code you had and then use <- to save it as an object called d_log.
+
+- Class: cmd_question
+  Output: |-
+   d and d_log are both single numbers. But in econometrics we're generally working with LOTS of observations of the same thing.
+   
+   We can collect multiple objects of the same type into *vectors*
+   
+   For example, 1:10 would create a vector with the numbers from 1 to 10.
+   
+   We can also create vectors with the c() function (concatenate). c(1,2,3,4) makes a vector object with the numbers 1, 2, 3, and 4.
+   
+   Make a vector with the numbers 5, 8, 1, 3, 100 and call that vector my_vec.
+  CorrectAnswer: my_vec <- c(5, 8, 1, 3, 100)
+  AnswerTests: identical(my_vec,c(5, 8, 1, 3, 100))
+  Hint: Create the vector by putting the numbers into the c() function, then save it as my_vec with <-
+
+- Class: cmd_question
+  Output: |-
+   Once you have a vector, you can send that vector to a function that takes vectors as an argument.
+   
+   Use mean() to get the mean of my_vec
+  CorrectAnswer: mean(my_vec)
+  AnswerTests: omnitest(correctVal=mean(my_vec)); expr_uses_func('mean')
+  Hint: Take my_vec and pass it as the first argument of mean().
+
+- Class: cmd_question
+  Output: |-
+   You can also use indexing to access the elements of the vector with square brackets []
+   
+   a_vec[3:4] would get the third and fourth elements of the a_vec vector
+   
+   a_vec[c(5,3,1)] would get the fifth, third, and first elements, in that order.
+   
+   Use indexing to get the third and fifth elements of my_vec.
+  CorrectAnswer: my_vec[c(3,5)]
+  AnswerTests: omnitest(correctVal=my_vec[c(3,5)])
+  Hint: c(3,5) gives you a vector with 3 and 5 in it. Feed that into square brackets following my_vec to get the third and fifth elements of my_vec.
+
+- Class: cmd_question
+  Output: |-
+   You can also get elements of a vector by feeding it *logical values* (TRUE and FALSE)
+   
+   a_vec[c(TRUE, FALSE, TRUE)], if a_vec had three elements, would give you the first element (TRUE), not the second (FALSE), and the third (TRUE).
+   
+   Use this method to get the first, third, and fifth elements of my_vec.
+  CorrectAnswer: my_vec[c(TRUE,FALSE,TRUE,FALSE,TRUE)]
+  AnswerTests: omnitest(correctVal=my_vec[c(TRUE,FALSE,TRUE,FALSE,TRUE)])
+  Hint: The vector c(TRUE,FALSE,TRUE,FALSE,TRUE) is TRUE for its first, third, and fifth elements. Feed that to the square brackets following my_vec to get its first, third, and fifth elements.
+
+- Class: cmd_question
+  Output: |-
+   A data frame is a collection of vectors of the same length. Data frames is what we'll be using for most of the work in this class.
+   
+   There are a few ways to get a data frame object. One is to use a pre-loaded data set like "iris" which has data on some flowers. Type:
+   
+   data(iris)
+   
+   to load it in.
+  CorrectAnswer: data(iris)
+  AnswerTests: omnitest(correctExpr='data(iris)')
+  Hint: Just type data(iris)
+
+- Class: cmd_question
+  Output: Now type iris by itself to look at the iris data object.
+  CorrectAnswer: iris
+  AnswerTests: omnitest(correctExpr='iris')
+  Hint: Just type iris.
+
+- Class: cmd_question
+  Output: |-
+   As mentioned, data frames are just a bunch of vectors of the same length taped together.
+   
+   We can get those vectors back out with $ or [[]]
+   
+   my_data$vec1
+   
+   my_data[['vec1']]
+   
+   will both get the column named vec1 out of the my_data data frame.
+   
+   Get the Petal.Length column out of iris using the $
+  CorrectAnswer: iris$Petal.Length
+  AnswerTests: omnitest(correctExpr='iris$Petal.Length')
+  Hint: It's my_data$vec1 but with iris instead of my_data and Petal.Length instead of vec1.
+
+- Class: cmd_question
+  Output: |-
+   After we get a vector back out of a data frame, we can send it to a function that uses vectors.
+   
+   Get the mean() of Petal.Length from the iris data frame.
+  CorrectAnswer: mean(iris$Petal.Length)
+  AnswerTests: omnitest(correctVal=mean(iris$Petal.Length))
+  Hint: Take your iris$Petal.Length code from last time and use it as the first argument of mean().
+
+- Class: exact_question
+  Output: |-
+   What would be the output of the following lines of code?
+   
+   my_first_vector <- c(1,6,5,2,3)
+   
+   my_second_vector <- my_first_vector[c(1,4,5)]
+   
+   my_second_vector[c(FALSE, TRUE, FALSE)]
+  CorrectAnswer: 2
+  AnswerTests: omnitest(correctVal = 2)
+  Hint: my_second_vector contains the first, fourth, and fifth elements of my_first_vector.
+
+
+- Class: cmd_question
+  Output: |-
+   In this class, most of the time we're going to be working with data frames using the **dplyr** package, which is a part of the **tidyverse**.
+   
+   **dplyr** has a bunch of data-manipulation functions in it that chain together easily and have nice syntax.
+   
+   Load up the **tidyverse** so we can use **dplyr** by typing
+   
+   library(tidyverse)
+  CorrectAnswer: library(tidyverse)
+  AnswerTests: omnitest(correctExpr='library(tidyverse)')
+  Hint: Type library(tidyverse)
+
+- Class: cmd_question
+  Output: |-
+   **dplyr** has an alternate way of getting a vector out of a data frame, the function pull()
+   
+   pull() takes two argument: first, the data frame, and second, the variable you want.
+   
+   It's very flexible. You can ask for the variable by name directly, as a string, or as a column position
+   
+   pull(my_data, vec1)
+   pull(my_data, 'vec1')
+   pull(my_data, 3)
+   
+   Would all get the vec1 column out of the my_data data frame (that third one requires it to be the third column)
+   
+   Use pull() to get the Petal.Length variable out of iris.
+  CorrectAnswer: pull(iris, Petal.Length)
+  AnswerTests: omnitest(correctVal=pull(iris, Petal.Length)); expr_uses_func('pull')
+  Hint: Make iris the first argument of pull, and Petal.Length the second.
+
+- Class: cmd_question
+  Output: |-
+   Another handy **dplyr** function is filter(), which picks particular rows out of a data frame. Feed it a logical vector (like the c(TRUE, FALSE, ...) we had before, or something like Petal.Length > 5 which would be TRUE wherever Petal.Length is longer than 5) and it will give you back just the *rows* that are TRUE.
+   
+   filter(my_data, vec1 == 3)
+   
+   would give you back a data frame (or "tibble" which is just a data frame with some extra bells and whistles) containing just the rows/observations for which vec1 is 3 (the == checks for whether they're equal).
+   
+   Use filter() to get only the rows of iris for which Species is 'Virginica'. Species is a string variable so you'll need those quotes around Virginica.
+  CorrectAnswer: filter(iris, Species == 'Virginica')
+  AnswerTests: omnitest(correctVal=filter(iris, Species == 'Virginica')); expr_uses_func('filter')
+  Hint: filter() takes iris as the first argument, and the logical statement Species == 'Virginica' as the second argument.
+
+
+- Class: text
+  Output: |-
+   One of the most useful things that comes with **dplyr** is the pipe, %>%
+   
+   The pipe takes whatever is on its left and makes it the first argument of the thing on the right, so you can chain things together like a conveyer belt.
+   
+   This makes your code easier to write, easier to read, and less likely to have parentheses-balancing issues.
+   
+   For example, these are two different ways of saying "give me the minimum value of Petal.Length among Virginica flowers":
+   
+   min(pull(filter(iris, Species == 'Virginica'),Petal.Length))
+   
+   iris %>%
+   
+      filter(Species == 'Virginica') %>%
+      
+      pull(Petal.Length)%>%
+      
+      min()
+      
+   Since the first argument of **dplyr** functions is always the data frame, we don't need to write it; the pipe just fills that in with whatever's on the left!
+
+- Class: cmd_question
+  Output: Use the pipe (%>%) with filter() and pull() to get the mean of the variable Sepal.Length after filtering to just the observations for which Petal.Length > median(Petal.Length).
+  CorrectAnswer: |-
+   iris %>%
+   
+   filter(Petal.Length > median(Petal.Length)) %>%
+   
+   pull(Sepal.Length) %>%
+   
+   mean()
+  AnswerTests: omnitest(correctVal= iris %>% filter(Petal.Length > median(Petal.Length)) %>% pull(Sepal.Length) %>% mean()) ; expr_uses_func('`%>%`'); expr_uses_func('filter'); expr_uses_func('pull')
+  Hint: Follow the pipe code from the last question, but change what you're filtering to, what you're pulling, and the function you send it to.
+
+- Class: cmd_question
+  Output: |-
+   Like filter(), select() will give you back just part of your data.frame (or tibble).
+   
+   Except instead of picking just some of the rows, it will pick just some of the columns.
+   
+   my_data %>% select(vec1, vec2)
+   
+   will give you back a version of my_data that contains only the columns vec1 and vec2. Unlike pull() you get back a data frame, not a vector, even if you only specify one variable.
+   
+   Use select() to pick only the columns Species, Sepal.Length, and Petal.Length from iris.
+  CorrectAnswer: iris %>% select(Species, Sepal.Length, Petal.Length)
+  AnswerTests: omnitest(correctVal=iris %>% select(Species, Sepal.Length, Petal.Length)); expr_uses_func('select')
+  Hint: The first argument for select() is the data frame (either put in directly or passed via pipe). Then just list the variables you want.
+
+- Class: cmd_question
+  Output: |-
+   Of course, as with all of these, if you don't store the result it doesn't do much!
+   
+   Repeat the code from the last step, but this time use <- to overwrite the iris object with this new, three-variable-only version.
+   
+  CorrectAnswer: iris <- iris %>% select(Species, Sepal.Length, Petal.Length)
+  AnswerTests: identical(names(iris),c('Species','Sepal.Length','Petal.Length'))
+  Hint: Just iris <-  and then the code from the last step.
+
+- Class: cmd_question
+  Output: |-
+   While there are many more **dplyr** functions, our final one for today will be mutate().
+   
+   mutate() *adds a new column* to the data.
+   
+   my_data %>% mutate(newvarname = functionofoldvars)
+   
+   (note that even though we're assigning things we have to use = not <- here). For example,
+   
+   my_data %>% mutate(new1 = var1^2, new2 = var1 > 3)
+   
+   would create two new variables in my_data called new1, equal to var1 squared, and new2 equal to TRUE if var1 is above 3 and FALSE otherwise.
+   
+   Use mutate() to create a new column called Petal_Squared equal to Petal.Length^2. **Overwrite iris with this modified version**
+  CorrectAnswer: iris <- iris %>% mutate(Petal_Squared = Petal.Length^2)
+  AnswerTests: identical(iris$Petal_Squared, (iris$Petal.Length)^2)
+  Hint: The variable creation syntax inside of mutate is new_variable_name = function_of_old_variables.
+
+- Class: cmd_question
+  Output: |- 
+   Use data(Orange) to load up some data on tree circumferences. Then it will be the last question I promise!
+  CorrectAnswer: data(Orange)
+  AnswerTests: omnitest(correctExpr='data(Orange)')
+  Hint: Just type data(Orange)
+
+- Class: cmd_question
+  Output: |-
+   Orange has three variables: Tree, age, and Circumference.
+   
+   Using %>%, filter(), select(), mutate(), pull(), and mean() (you'll need all of them):
+   
+   (a) Pick just the rows where Tree is 5
+   
+   (b) Pick just the columns age and circumference
+   
+   (c) Create a new column called circ_by_age which is circumference divided by ge
+   
+   (d) Pull that new variable out
+   
+   (e) Take the mean of it
+   
+   Then you're done!
+ 
+  CorrectAnswer: |-
+   Orange %>%
+   
+   filter(Tree == 5) %>%
+   
+   select(age, circumference) %>%
+   
+   mutate(circ_by_age = circumference/age) %>%
+   
+   pull(circ_by_age) %>%
+   
+   mean()
+  AnswerTests: omnitest(correctVal= Orange %>% filter(Tree == 5) %>% select(age, circumference) %>%  mutate(circ_by_age = circumference/age) %>%   pull(circ_by_age) %>%   mean()); expr_uses_func('`%>%`'); expr_uses_func('select'); expr_uses_func('filter'); expr_uses_func('mutate'); expr_uses_func('pull')
+  Hint: Use the appropriate functions according to the instructions and chain them together using the pipe.
