@@ -288,10 +288,10 @@
    
    would give you back a data frame (or "tibble" which is just a data frame with some extra bells and whistles) containing just the rows/observations for which vec1 is 3 (the == checks for whether they're equal).
    
-   Use filter() to get only the rows of iris for which Species is 'Virginica'. Species is a string variable so you'll need those quotes around Virginica.
-  CorrectAnswer: filter(iris, Species == 'Virginica')
-  AnswerTests: omnitest(correctVal=filter(iris, Species == 'Virginica')); expr_uses_func('filter')
-  Hint: filter() takes iris as the first argument, and the logical statement Species == 'Virginica' as the second argument.
+   Use filter() to get only the rows of iris for which Species is 'virginica'. Species is a string variable so you'll need those quotes around Virginica.
+  CorrectAnswer: filter(iris, Species == 'virginica')
+  AnswerTests: omnitest(correctVal=filter(iris, Species == 'virginica')); expr_uses_func('filter')
+  Hint: filter() takes iris as the first argument, and the logical statement Species == 'virginica' as the second argument.
 
 
 - Class: text
@@ -302,7 +302,29 @@
    
    This makes your code easier to write, easier to read, and less likely to have parentheses-balancing issues.
    
-   For example, these are two different ways of saying "give me the minimum value of Petal.Length among Virginica flowers":
+   For example, these are two different ways of saying "pull the variable Petal.Length out of the iris data":
+   
+   pull(iris, Petal.Length)
+   
+   iris %>%
+   
+      pull(Petal.Length)
+   
+   (the pipe isn't too impressive with just one command like this, but we'll get there!)
+
+- Class: cmd_question
+  Output: Use the pipe (%>%) with pull() to get the Sepal.Length variable.
+  CorrectAnswer: |-
+   iris %>%
+   
+   pull(Sepal.Length) 
+  AnswerTests: omnitest(correctVal= iris %>% pull(Sepal.Length)) ; expr_uses_func('`%>%`'); expr_uses_func('pull')
+  Hint: Follow the pipe code from the last question, but change what you're pulling.
+
+   
+- Class: text
+  Output: |-
+   The pipe really starts to shine when you have a lot of operations to get through. For example, these are two different ways of saying "give me the minimum value of Petal.Length among Virginica flowers":
    
    min(pull(filter(iris, Species == 'Virginica'),Petal.Length))
    
@@ -411,4 +433,4 @@
    
    mean()
   AnswerTests: omnitest(correctVal= Orange %>% filter(Tree == 5) %>% select(age, circumference) %>%  mutate(circ_by_age = circumference/age) %>%   pull(circ_by_age) %>%   mean()); expr_uses_func('`%>%`'); expr_uses_func('select'); expr_uses_func('filter'); expr_uses_func('mutate'); expr_uses_func('pull')
-  Hint: Use the appropriate functions according to the instructions and chain them together using the pipe.
+  Hint: Use the appropriate functions according to the instructions and chain them together using the pipe. Keep in mind that the mean() at the end of the chain won't need anything in the parentheses, since the only argument it needs is the vector, and that's being passed in by the pipe!
