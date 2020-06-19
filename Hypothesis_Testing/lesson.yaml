@@ -1,0 +1,257 @@
+- Class: meta
+  Course: Econometrics
+  Lesson: Hypothesis Testing
+  Author: Nick Huntington-Klein
+  Type: Standard
+  Organization: Seattle University
+  Version: 2.4.5
+
+- Class: text
+  Output: |-
+   This lesson will cover hypothesis testing, both in concept and how to do it in R.
+   
+   Before starting, you will want to be sure that the packages tidyverse, jtools, vtable, and car are all installed.
+   
+   If they're not, you can Escape out of here, install them with
+   
+   install.packages(c('tidyverse','jtools','vtable','car'))
+   
+   And then type swirl() to come back in.
+
+- Class: cmd_question
+  Output: Load in the tidyverse with library(tidyverse)  
+  CorrectAnswer: library(tidyverse)
+  AnswerTests: omnitest(correctExpr='library(tidyverse)')
+  Hint: Just put library(tidyverse). If that doesn't work, maybe it's not installed?
+
+- Class: cmd_question
+  Output: Load in jtools with library(jtools)  
+  CorrectAnswer: library(jtools)
+  AnswerTests: omnitest(correctExpr='library(jtools)')
+  Hint: Just put library(jtools). If that doesn't work, maybe it's not installed?
+
+- Class: cmd_question
+  Output: |-
+   Let's create some data for which we know "the truth".
+   
+   Copy-paste this in:
+   
+   # Make sure everyone gets the same random data with set.seed
+   # then create the data with tibble() and mutate()
+   
+   df <- tibble(X = runif(300)) %>% mutate(Y = 5 + 3*X + rnorm(300))
+  CorrectAnswer: |-
+   df <- tibble(X = runif(300)) %>% mutate(Y = 5 + 3*X + rnorm(300))
+  AnswerTests: ifelse(exists('df'),identical(names(df),c('X','Y')),FALSE)
+  Hint: Copy-paste in all the code.
+
+- Class: exact_question
+  Output: |- 
+   In the code you just ran, you set the *true* data generating process for Y using mutate. 
+   
+   What is the *true* value of beta1 (the effect of a one-unit increase in X on Y)?
+  CorrectAnswer: 3
+  AnswerTests: omnitest(correctVal=3)
+  Hint: |- 
+   The mutate command has
+   
+   mutate(Y = 5 + 3*X + rnorm(300))
+   
+   And the true data generating process looks like
+   
+   Y = beta0 + beta1*X + error
+
+- Class: cmd_question
+  Output: Run a regression of Y on X using your data df (which is just a single sample generated using the true DGP) and store the result as one_samp
+  CorrectAnswer: one_samp <- lm(Y~X, data = df)
+  AnswerTests: ifelse(exists('one_samp'),identical(predict(one_samp),predict(lm(Y~X, data = df))),FALSE)
+  Hint: Use lm() to run a regression of Y on X, with data = df, and store the result using <- as one_samp
+
+- Class: cmd_question
+  Output: |-
+   You can get just the named vector of coefficients out of a regression object using the coef() function.
+   
+   The first element of the named vector is the intercept. The second will be the coefficient on X. Store the coefficient on X as beta1:
+   
+   beta1 <- coef(one_samp)[[2]]
+   
+   (usually for a vector you'd just need single brackets [] but we want to get rid of that name)
+  CorrectAnswer: beta1 <- coef(one_samp)[[2]]
+  AnswerTests: ifelse(exists('beta1'),identical(beta1,coef(one_samp)[[2]]),FALSE)
+  Hint: Just copy in beta1 <- coef(one_samp)[[2]]
+
+- Class: cmd_question
+  Output: |- 
+   You can get just the vector of standard errors from a regression with summary()$coefficients[,2].
+   
+   The first element of that vector is the standard error of the intercept. The second is the standard error of the coefficient on X.
+   
+   Use this code to get the standard error of beta1 and store it:
+   
+   se_beta1 <- summary(one_samp)$coefficients[,2][[2]]
+  CorrectAnswer: se_beta1 <- summary(one_samp)$coefficients[,2][[2]]
+  AnswerTests: ifelse(exists('se_beta1'),identical(se_beta1,summary(one_samp)$coefficients[,2][[2]]),FALSE)
+  Hint: Copy in the code
+
+
+- Class: cmd_question
+  Output: Now have R show you the value of beta1
+  CorrectAnswer: beta1
+  AnswerTests: any_of_exprs('beta1','print(beta1)')
+  Hint: Just write beta1 or print(beta1)
+
+- Class: mult_question
+  Output: beta1 is not exactly 3. What is this an example of? 
+  AnswerChoices: Sampling variation; Endogeneity; Both sampling variation and endogeneity; Not enough information
+  CorrectAnswer: Sampling variation
+  AnswerTests: omnitest(correctVal='Sampling variation')
+  Hint: When we created the data, we didn't make X and the error term related to each other.
+
+
+- Class: mult_question
+  Output: We are going to perform a hypothesis test on beta1, which was estimated from a sample of 300 observations. What would be the most appropriate null distribution to use?
+  AnswerChoices: Normal; t distribution; F distribution 
+  CorrectAnswer: Normal
+  AnswerTests: omnitest(correctVal='Normal')
+  Hint: There are enough observations here that the t distribution is not necessary.
+
+- Class: cmd_question
+  Output: Keeping in mind that you've already got the coefficient saved as beta1 and the standard error saved as se_beta1, calculate the z-score for a test of whether beta1 = 3.
+  CorrectAnswer: (beta1 - 3)/se_beta1
+  AnswerTests: omnitest(correctVal=c('X'=(beta1 - 3)/se_beta1))
+  Hint: The formula for a z-score is (estimate - null value)/s.e.
+
+- Class: exact_question
+  Output: |-
+   In a moment we're going to calculate the proportion of the standard normal distribution that is to the right of the *absolute value* of your z-score.
+   
+   In order to reject the null at the 95% confidence level with a *two-sided* test, this proportion needs to be below...
+   
+   (put your answer as a decimal, i.e. .4 instead of 40%)
+  CorrectAnswer: .025
+  AnswerTests: omnitest(correctVal=0.025)
+  Hint: For a 95% confidence level and a two-sided test, to reject the null you want 5% in *both tails*, meaning how much in *just one* tail?
+
+- Class: cmd_question
+  Output: |-
+   You can get the proportion of the distribution to the right of the absolute value of a z-score with the pnorm function.
+   
+   pnorm(z) gives the proportion of the standard normal that is to the left of z, so 1-pnorm(z) gives the proportion to the right. So keeping in mind we want to use the absolute value:
+   
+   1-pnorm(abs(z))
+   
+   Use this to find the proportion to the right of the absolute value of your z-score.
+  CorrectAnswer: 1-pnorm(abs((beta1-3)/se_beta1))
+  AnswerTests: omnitest(correctVal=1-pnorm(abs((beta1-3)/se_beta1)))
+  Hint: Take your z-score code from before, (beta1-3)/se_beta1, and use that to replace the z in the original code.
+
+- Class: cmd_question
+  Output: So then, keeping mind that this is a two-tailed test so we want the proportion as far away from the null as your z-score on *both sides*, what is the p-value of this test?
+  CorrectAnswer: 2*(1-pnorm(abs((beta1-3)/se_beta1)))
+  AnswerTests: omnitest(correctVal=2*(1-pnorm(abs((beta1-3)/se_beta1))))
+  Hint: To count the area on both sides, just multiply the code for your previous answer by 2.
+
+- Class: cmd_question
+  Output: |-
+   Can you reject the null that beta1 = 3 at the 95% level with a two-sided test?
+   
+   Write TRUE if you can reject the null and FALSE if you can't, in all capitals.
+  CorrectAnswer: 2*(1-pnorm(abs((beta1-3)/se_beta1))) <= .05
+  AnswerTests: omnitest(correctVal=2*(1-pnorm(abs((beta1-3)/se_beta1))) <= .05)
+  Hint: If your answer to the last question is below .05, you can reject and so type TRUE. Otherwise, type FALSE.
+
+
+- Class: exact_question
+  Output: |-
+   This swirl lesson uses randomly generated data.
+   
+   What proportion of people who use this swirl lesson reject the null of beta1 = 3, even though it's true?
+   
+   (put your answer as a decimal, i.e. .4 instead of 40%)
+  CorrectAnswer: .05
+  AnswerTests: omnitest(correctVal=.05)
+  Hint: If alpha = X, then we reject the null X of the time even when it's true, just by random chance.
+
+- Class: cmd_question
+  Output: Now we are going to work with some data. Use data(storms) to load the storms dataset (from the **dplyr** package)
+  CorrectAnswer: data(storms)
+  AnswerTests: omnitest(correctExpr='data(storms)')
+  Hint: Type data(storms)
+
+- Class: cmd_question
+  Output: |-
+   Use vtable() to examine the data.
+   
+   Hmm, we haven't actually loaded the vtable package yet. No worries, you can access the vtable function without loading the package using packagename::functionname()
+   
+   vtable::vtable()
+  CorrectAnswer: vtable::vtable(storms)
+  AnswerTests: expr_uses_func('vtable')
+  Hint: vtable::vtable()
+
+- Class: cmd_question
+  Output: Now examine the data using help(storms)
+  CorrectAnswer: help(storms)
+  AnswerTests: omnitest(correctExpr='help(storms)')
+  Hint: Type help(storms)
+
+- Class: cmd_question
+  Output: |- 
+   Let's see if how far east you are relates to wind speed of a storm.
+   
+   Regress wind on longitude and store the result as wind_reg
+  CorrectAnswer: wind_reg <- lm(wind~long, data =storms)
+  AnswerTests: ifelse(exists('wind_reg'),identical(predict(wind_reg),predict(lm(wind~long, data =storms))),FALSE)
+  Hint: C'mon, you know how to run a regression at this point. Then, store it as wind_reg.
+
+- Class: cmd_question
+  Output: Use export_summs() to look at the regression. Add a digits = 3 option so you can look in a little more detail.
+  CorrectAnswer: export_summs(wind_reg, digits = 3)
+  AnswerTests: omnitest(correctExpr = 'export_summs(wind_reg, digits = 3)')
+  Hint: Type export_summs(wind_reg, digits = 3)
+
+- Class: mult_question
+  Output: What is the standard error on the coefficient on longitude?
+  AnswerChoices: 53.902; 0.898; 0.006; 0.013; 10010; 0.000
+  CorrectAnswer: 0.013
+  AnswerTests: omnitest(correctVal='0.013')
+  Hint: Standard errors in an export_summs() table are shown in parentheses underneath the coefficients.
+
+- Class: cmd_question
+  Output: Use plot_coefs() to look at the 95% confidence interval of the coefficient on longitude.
+  CorrectAnswer: plot_coefs(wind_reg)
+  AnswerTests: expr_uses_func('plot_coefs')
+  Hint: Take your regression wind_reg and give it to plot_coefs as its first argument.
+
+- Class: exact_question
+  Output: The asterisks indicate whether the p-value on a test of the coefficient is below a certain value. Based on the three stars next to the Intercept, we can reject that the intercept is equal to the null value of... what?
+  CorrectAnswer: 0
+  AnswerTests: omnitest(correctVal=0)
+  Hint: Regression tables by default compare their coefficients to 0.
+
+- Class: cmd_question
+  Output: Load the car library using library(car) 
+  CorrectAnswer: library(car)
+  AnswerTests: omnitest(correctExpr='library(car)')
+  Hint: Type library(car)
+
+- Class: cmd_question
+  Output: |- 
+   Use linearHypothesis() from **car** to test whether the coefficient on longitue is 0.
+   
+   The first argument in linearHypothesis is the regression object. The second is a string description of the test you want to run, for example 'X = 2' would test whether the coefficient on X is equal to 2.
+  CorrectAnswer: linearHypothesis(wind_reg, 'long = 0')
+  AnswerTests: omnitest(correctVal="linearHypothesis(wind_reg, 'long = 0')")
+  Hint: Make the first argument wind_reg and the second 'long = 0'.
+
+- Class: cmd_question
+  Output: Now use linearHypothesis to test whether the coefficient on longitude is equal to 5.
+  CorrectAnswer: linearHypothesis(wind_reg, 'long = 5')
+  AnswerTests: omnitest(correctVal="linearHypothesis(wind_reg, 'long = 5')")
+  Hint: Make the first argument wind_reg and the second 'long = 5'.
+
+- Class: cmd_question
+  Output: What if we have heteroskedasticity? Test whether the coefficient on longitude is equal to 5 again, but this time set white.adjust = TRUE to use robust standard errors for the test.
+  CorrectAnswer: linearHypothesis(wind_reg, 'long = 5', white.adjust)
+  AnswerTests: omnitest(correctVal="linearHypothesis(wind_reg, 'long = 0', white.adjust = TRUE)")
+  Hint: Make the first argument wind_reg and the second 'long = 0'. Then the third is white.adjust = TRUE.
