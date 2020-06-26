@@ -10,11 +10,11 @@
   Output: |-
    This lesson will cover hypothesis testing, both in concept and how to do it in R.
    
-   Before starting, you will want to be sure that the packages tidyverse, jtools, vtable, and car are all installed.
+   Before starting, you will want to be sure that the packages tidyverse, jtools, ggstance, vtable, and car are all installed.
    
    If they're not, you can Escape out of here, install them with
    
-   install.packages(c('tidyverse','jtools','vtable','car'))
+   install.packages(c('tidyverse','jtools','ggstance','vtable','car'))
    
    And then type swirl() to come back in.
 

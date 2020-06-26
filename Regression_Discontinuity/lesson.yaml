@@ -1,0 +1,338 @@
+
+
+
+- Class: meta
+  Course: Econometrics
+  Lesson: Regression Discontinuity
+  Author: Peter Nencka
+  Type: Standard
+  Organization: Miami University Ohio
+  Version: 2.4.5
+
+#Data from Mastering Metrics, by Angrist and Pischke
+
+#Inspiration from Tony Carilli (https://bookdown.org/carillitony/bailey/chp11.htm)l and Jeffrey B. Arnold (https://jrnold.github.io/masteringmetrics/mlda-regression-discontinuity.html)
+
+- Class: text
+  Output: |- 
+   Welcome to the Swirl econometrics course.
+   
+   This lesson will work through an example of the regression discontinuity (RD) method.
+   
+   Before starting, you should have the **tidyverse**,  **rdrobust**, **haven**, and **jtools** packages installed. Please exit now and install these packages if you do not have them.
+
+
+- Class: text
+  Output: |-
+
+   We will work through an example from Carpenter and Dobkin (2009).
+   
+   They study the effects of alcohol use on mortality using the US's minimum drinking age laws
+   
+
+- Class: cmd_question
+  Output: |- 
+   Let's start by loading up the packages we'll need. 
+ 
+   Use the library() function to load the tidyverse package.
+  CorrectAnswer: library(tidyverse)
+  AnswerTests: omnitest(correctExpr='library(tidyverse)')
+  Hint: Take the name of the package and feed that to the library() function.
+
+- Class: cmd_question
+  Output: |- 
+   Great! Now do rdrobust.
+  CorrectAnswer: library(rdrobust)
+  AnswerTests: omnitest(correctExpr='library(rdrobust)')
+  Hint: Take the name of the package and feed that to the library() function.
+
+- Class: cmd_question
+  Output: |- 
+   And now load jtools.
+  CorrectAnswer: library(jtools)
+  AnswerTests: omnitest(correctExpr='library(jtools)')
+  Hint: Take the name of the package and feed that to the library() function.
+
+- Class: cmd_question
+  Output: |- 
+   Last but not least, load haven
+  CorrectAnswer: library(haven)
+  AnswerTests: omnitest(correctExpr='library(haven)')
+  Hint: Take the name of the package and feed that to the library() function.
+
+- Class: cmd_question
+  Output: |- 
+   The data we will use was created in a different statistical program, Stata
+   
+   We will use the read_dta function from the Haven package to load this Stata data file from the internet and import it as a R tibble.
+   
+   To import data directly from a URL, you can use the syntax: read_dta("Your URL Here")
+   
+   The data is located here: http://masteringmetrics.com/wp-content/uploads/2015/01/AEJfigs.dta
+   
+   Use read_dta to save the data as a tibble named deaths_by_age
+  CorrectAnswer: deaths_by_age <- read_dta("http://masteringmetrics.com/wp-content/uploads/2015/01/AEJfigs.dta")
+  AnswerTests: omnitest(correctExpr='deaths_by_age <- read_dta("http://masteringmetrics.com/wp-content/uploads/2015/01/AEJfigs.dta")')
+  Hint: Follow the syntax of read_dta in the question and save the result as deaths_by_age
+  
+- Class: cmd_question
+  Output: |- 
+   This data records the average mortality rates (per 10,000 people) by cause of death in the 24 months before and after people turn 21. 
+   
+   Type glimpse(deaths_by_age) in the console to get a compact summary of the structure of the data, including variable names and the first rows of the data
+  CorrectAnswer: glimpse(deaths_by_age)
+  AnswerTests: omnitest(correctExpr='glimpse(deaths_by_age)')
+  Hint: Enter glimpse(deaths_by_age) in the console! :-)
+  
+- Class: cmd_question
+  Output: |- 
+   Create a new tibble called small_deaths_by_age that only includes the agecell, all, internal, and mva variables 
+   
+   Hint! You should use the select function
+  CorrectAnswer: small_deaths_by_age <- deaths_by_age %>% select(agecell, all, internal, mva)
+  AnswerTests: identical(names(small_deaths_by_age),c('agecell', 'all', 'internal', 'mva'))
+  Hint: Remember to pipe small_deaths_by_age to the select function
+ 
+- Class: cmd_question
+  Output: |- 
+   Copy the following code into the console to create a graph of all-cause deaths rates by age: 
+
+    small_deaths_by_age %>% 
+    ggplot(aes(x = agecell, y = all)) + 
+    geom_point() +
+    labs(y = "Mortality (per 10,000)", x = "Age")
+   
+  CorrectAnswer: small_deaths_by_age %>%ggplot(aes(x = agecell, y = all)) +  geom_point() + labs(y = "Mortality (per 10,000)", x = "Age")
+  AnswerTests: omnitest(correctExpr='small_deaths_by_age %>%ggplot(aes(x = agecell, y = all)) +  geom_point() + labs(y = "Mortality (per 10,000)", x = "Age")')
+  Hint: Just copy the code as written into the console!
+  
+- Class: cmd_question
+  Output: |- 
+   At what age do you observe a discontinuous jump in mortality?
+  CorrectAnswer: 21
+  AnswerTests: omnitest(correctVal = 21)
+  Hint: Carefully look at the graph, and think about minimum drinking age laws in the United States.
+  
+  
+- Class: cmd_question
+  Output: |- 
+   Exactly! There appears to be a discontinuous jump in mortality at age 21. 
+   
+   Let's quantify the size of this jump. 
+
+   First, we need to create an indicator variable in the small_deaths_by_age tibble that takes the value 1 when age is greater than or equal to 21 and zero otherwise.
+   
+   You can accomplish this using the following code: 
+   
+   small_deaths_by_age <- small_deaths_by_age %>% mutate(age_21_or_over = as.factor(ifelse(agecell >= 21, 1, 0)))
+   
+   Copy this code into the console to create your indicator variable
+  CorrectAnswer: small_deaths_by_age <- small_deaths_by_age %>% mutate(age_21_or_over = as.factor(ifelse(agecell >= 21, 1, 0)))
+  AnswerTests: omnitest(correctExpr='small_deaths_by_age <- small_deaths_by_age %>% mutate(age_21_or_over = as.factor(ifelse(agecell >= 21, 1, 0)))')
+  Hint: Just copy the code into the console!
+  
+- Class: mult_question
+  Output: |- 
+   Suppose that I run the following regression using these data and our new indicator variable: 
+   
+   lm(all ~ age_21_or_over, data = small_deaths_by_age)
+
+   Why is this not a proper regression discontinuity strategy? 
+  AnswerChoices: It does not control continuously for age, which is positively related to mortality;The standard errors are wrong;There are multiple jumps in mortality in this dataset;We defined the indictor variable incorrectly
+  CorrectAnswer: It does not control continuously for age, which is positively related to mortality
+  AnswerTests: omnitest(correctVal='It does not control continuously for age, which is positively related to mortality')
+  Hint: Remember the importance of the running variable.
+
+- Class: text
+  Output: |-
+
+   Exactly! When we do not control for age (the running variable), we are not accounting for the general upward mortality trend we can observe in the plot.
+   
+   For example, the data also indicates that those who are 20 are more likely to die than those who are 19 -- but this has nothing to do with any policy that takes effect at age 21.
+   
+- Class: cmd_question
+  Output: |- 
+   Instead, estimate a regression with mortality rates as the dependent variable and both the 21 or over indicator **and** age as independent variables.
+   
+   Save your result as model_1
+  CorrectAnswer: model_1 <- lm(all ~ agecell + age_21_or_over, data = small_deaths_by_age)
+  AnswerTests: any_of_exprs('model_1 <- lm(all ~ agecell + age_21_or_over , data = small_deaths_by_age)', 'model_1 <- lm(all ~ age_21_or_over + agecell , data = small_deaths_by_age)')
+  Hint: Make sure that you are including both agecell and age_21_or_over as independent variables!
+  
+- Class: cmd_question
+  Output: |- 
+   Use export_summs on your regression output to look at the results
+  CorrectAnswer: export_summs(model_1)
+  AnswerTests: omnitest(correctVal='export_summs(model_1)')
+  Hint:
+  
+- Class: mult_question
+  Output: |- 
+   Excellent! What is the interpretation of the coefficient on the age_21_or_over indicator?
+  AnswerChoices: Turning 21 increases mortality by 7.66 deaths per 10,0000 on average;You are less likely to die when you turn 21;Mortality is 7.66 units lower when you turn 21;Getting older always increases mortality! 
+  CorrectAnswer: Turning 21 increases mortality by 7.66 deaths per 10,0000 on average
+  AnswerTests: omnitest(correctVal='Turning 21 increases mortality by 7.66 deaths per 10,0000 on average')
+  Hint: Remember the importance of the running variable.
+
+  
+  
+- Class: cmd_question
+  Output: |-
+   Excellent! One limitation of this regression is that we are assuming the relationship between age and mortality is the same on both sides of age 21.
+   
+   This does not appear to be true -- mortality is increasing before age 21 and decreasing afterwords.
+   
+   We can account for this by interacting our continuous age variable with our age 21 indicator variable. This allows the effect of age on mortality to differ depending on whether you are older or younger than age 21.
+ 
+   Copy the following code to estimate a model that allows the effect of age on mortality to differ across the age 21 threshold:
+   
+   model_2 <- lm(formula = all ~ agecell + age_21_or_over + agecell * age_21_or_over, data = small_deaths_by_age)
+  CorrectAnswer: model_2 <- lm(formula = all ~ agecell + age_21_or_over + agecell * age_21_or_over, data = small_deaths_by_age)
+  AnswerTests: omnitest(correctExpr='model_2 <- lm(formula = all ~ agecell + age_21_or_over + agecell * age_21_or_over, data = small_deaths_by_age)')
+  Hint: Just copy the code into the console!
+   
+   
+- Class: cmd_question
+  Output: |- 
+   Use export_summs on your regression output in model_2 to look at the results
+  CorrectAnswer: export_summs(model_2)
+  AnswerTests: omnitest(correctExpr='export_summs(model_2)')
+  Hint:
+   
+
+- Class: cmd_question
+  Output: |- 
+   Given these estimated coefficients, what is the predicted mortality rate (per 10,000 people) for someone whose age is 20.95? Round to the first decimal place.
+   
+   (You may want to use a spreadsheet program or calculator for these calculations)
+  CorrectAnswer: 93.6
+  AnswerTests: omnitest(correctVal=93.6)
+  Hint: Write out the regression equation to visualize your calculation
+
+- Class: cmd_question
+  Output: |- 
+   Given these coefficients, what is the predicted mortality rate (per 10,000 people) for someone whose age is 21.05? Round to the first decimal place.
+   
+   (You may want to use a spreadsheet program or calculator for these calculations)
+  CorrectAnswer: 101.3
+  AnswerTests: omnitest(correctVal=101.3)
+  Hint: Write out the regression equation to visualize your calculation
+
+
+- Class: cmd_question
+  Output: |- 
+   Great work! This implies that mortality is predicted to increase by approximately 7.6 per 10,000 people, or 8%, over the course of just 1/10 of a year! Be safe out there....  
+   
+   Copy the following code to graphically visualize the results of your regression discontinuity analysis:
+   
+   small_deaths_by_age %>%  ggplot(aes(x = agecell, y = all, color = age_21_or_over)) + geom_point() +geom_vline(xintercept = 21) +  geom_smooth(method = "lm", se = FALSE)
+  CorrectAnswer: small_deaths_by_age %>%  ggplot(aes(x = agecell, y = all, color = age_21_or_over)) + geom_point() +geom_vline(xintercept = 21) +  geom_smooth(method = "lm", se = FALSE)
+  AnswerTests: omnitest(correctExpr='small_deaths_by_age %>%  ggplot(aes(x = agecell, y = all, color = age_21_or_over)) + geom_point() +geom_vline(xintercept = 21) +  geom_smooth(method = "lm", se = FALSE)')
+  Hint: Copy the graphics code
+
+
+- Class: cmd_question
+  Output: |- 
+   While it is useful to understand how regression discontinuity methods work by running the regressions yourself, in practice most analysts use specialized packages that take care of most of the details quickly for you.
+   
+   One of these packages is rdrobust. To run our flexible RD using this package and save the results, we would type
+   
+   model_3 <- rdrobust(small_deaths_by_age$all, small_deaths_by_age$agecell, c = 21, p = 1, h = 2, kernel = "uniform")
+  
+   The first argument of rdrobust indicates the dataframe and outcome variable to use. The second indicates the running variable. The "c" option tells rdrobust the cutoff -- where in the running variable we think that there is a discontinuity. Here the cutoff is at age 21. 
+   
+   The "p" option tells rdrobust that we want to estimate linear slopes on either side of a regression. To estimate a second-order polynomial instead, we would type "p = 2". The "h" option tells rdrobust the bandwidth around the cutoff we want to use to estimate the model. Here, we are using the two years on either side of the cutoff so we enter 2.
+   
+   Finally, I specify that the kernel I want to use is a uniform distribution. This means I want to weight observations the same no matter how far they are from the cutoff.
+   
+   Copy the rdrobust code above to estimate this model and save it to the object model_3
+  CorrectAnswer: model_3 <- rdrobust(small_deaths_by_age$all, small_deaths_by_age$agecell, c = 21, p = 1, h = 2, kernel = "uniform")
+  AnswerTests: omnitest(correctExpr='model_3 <- rdrobust(small_deaths_by_age$all, small_deaths_by_age$agecell, c = 21, p = 1, h = 2, kernel = "uniform")')
+  Hint: Copy the rdrobust code 
+
+
+- Class: cmd_question
+  Output: |- 
+   use the function summary on your model_3 output to see the results of this estimation
+  CorrectAnswer: summary(model_3)
+  AnswerTests: omnitest(correctExpr='summary(model_3)')
+  Hint: Type summary(model_3)
+
+- Class: cmd_question
+  Output: |- 
+   Excellent! You should see that the estimated RD coefficient (7.663) is very similar to the predicted discontinuity we calculated "by hand" above.
+   
+   So far, we have used a bandwidth of two years before and after age 21 to estimate the model. Using rdrobust, run the same model as above but switch the bandwidth to 0.5. This means that we will only use observations within 1/2 a year of turning 21 to estimate the discontinuity.
+   
+   Save your result as model_4 
+  CorrectAnswer: model_4 <- rdrobust(small_deaths_by_age$all, small_deaths_by_age$agecell, c = 21, p = 1, h = 0.5, kernel = "uniform")
+  AnswerTests: omnitest(correctExpr='model_4 <- rdrobust(small_deaths_by_age$all, small_deaths_by_age$agecell, c = 21, p = 1, h = 0.5, kernel = "uniform")')
+  Hint: The only thing that should change is the "h" option
+
+- Class: cmd_question
+  Output: |- 
+   use the function summary on your model_4 output to see the results of this estimation
+  CorrectAnswer: summary(model_4)
+  AnswerTests: omnitest(correctExpr='summary(model_4)')
+  Hint: Type summary(model_4)
+  
+- Class: mult_question
+  Output: |- 
+   Excellent! Compare your results from the last two answers. How did your standard errors change between model_4 and model_3?
+  AnswerChoices: Standard errors became larger;Standard errors became smaller;Standard errors stayed the same
+  CorrectAnswer: Standard errors became larger
+  AnswerTests: omnitest(correctVal='Standard errors became larger')
+  Hint: Our new bandwidth choice reduced the sample size! All else equal, what does that do to standard errors?
+  
+- Class: text
+  Output: |- 
+    Excellent -- yes, standard errors increased when we focused only on observations within 1/2 a year of turning 21.
+    
+    This illustrates a tradeoff between identification and statistical precision in RD analyses. In an ideal world, we only want to compare observations very close to where we think the discontinuity exists -- here, age 21. The closer we are to the threshold, the more confident we can be that nothing else is changing between treated and untreated units.
+    
+    But we know that the fewer observations we have, the less precise our estimates will generally be. Thus, there is a tradeoff between bias (if we choose too large of a bandwidth) and precision (if we make the bandwidth too small).
+    
+    In practice, analysts typically report results for a range of reasonable bandwidth choices. If the results are similar --- like they are here --- that is a sign of a robust RD.
+   
+- Class: cmd_question
+  Output: |- 
+   We can also use the rdplot function (part of rdrobust) to quickly make regression discontinuity graphics.
+   
+   For example, to replicate our ggplot figure we could type
+   
+   rdplot(small_deaths_by_age$all, small_deaths_by_age$agecell, c = 21, p = 1, h = 2, kernel = "uniform", nbins = 25)
+
+   Notice that rdplot takes smililar options as rdrobust.
+   
+   The new option is "nbins", which tells rdplot how many dots to plot on either side of the discontinuity. If you choose a number less than your observation count, rdplot will try to combine them into binned averages. This is useful when you are working with a dataset with many observations; here, the data we are using has already been binned.
+
+   Modify the rdplot code above to change the outcome variable to mva, which is the death rate per 10,000 in motor vehicle accidents.
+  CorrectAnswer: rdplot(small_deaths_by_age$mva, small_deaths_by_age$agecell, c = 21, p = 1, h = 2, kernel = "uniform", nbins = 25)
+  AnswerTests: omnitest(correctExpr='rdplot(small_deaths_by_age$mva, small_deaths_by_age$agecell, c = 21, p = 1, h = 2, kernel = "uniform", nbins = 25)')
+  Hint: Only one change is needed -- swap all for mva 
+   
+
+- Class: cmd_question
+  Output: |- 
+   Nice! You can see that there appears to be a sizable jump in motor vehicle fatalities at age 21. This explains part of the overall impact on mortality that we observed. Newly legal drinkers are more likely to drive drunk.
+   
+   Now, create the same graph with the variable internal as the outcome variable. Internal records mortality due to heart attacks, cancer, and other causes related to illnesses, excluding accidents. 
+
+  CorrectAnswer: rdplot(small_deaths_by_age$internal, small_deaths_by_age$agecell, c = 21, p = 1, h = 2, kernel = "uniform", nbins = 25)
+  AnswerTests: omnitest(correctExpr='rdplot(small_deaths_by_age$internal, small_deaths_by_age$agecell, c = 21, p = 1, h = 2, kernel = "uniform", nbins = 25)')
+  Hint: Only one change is needed -- internal as the outcome variable 
+   
+- Class: text
+  Output: |- 
+    As you might expect, there is not a large jump in internal death rates at age 21. We would not expect to see these sorts of deaths to immediately increase due to drinking.
+    
+    Together, our results suggest that the overall increase in mortality that we observe at age 21 is driven by acute accidents, consistent with increases in (irresponsible) drinking at age 21.
+    
+- Class: text
+  Output: |- 
+    Thanks for following along with this regression discontinuity lesson! 
+    
+    If you found the research in this lesson interesting, here is a broader question for you to consider: Did our analysis identify the dangerous effects of alcohol or the dangerous effects of strict drinking age laws? Or is it difficult to tell?
+    
+    
+    
