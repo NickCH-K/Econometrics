@@ -1,0 +1,243 @@
+- Class: meta
+  Course: Econometrics
+  Lesson: Binary Variables and Functional Form
+  Author: Nick Huntington-Klein
+  Type: Standard
+  Organization: Seattle University
+  Version: 2.4.5
+
+- Class: text
+  Output: |-
+   This Swirl lesson will cover the various features on the right-hand-side of the regression equation, including binary and categorical variables, variable transformations, and interactions.
+   
+   This lesson will make use of the **tidyverse**, **vtable**, **car**, and **jtools** packages.
+   
+   If you don't have these, exit out of this lesson with bye(), install the packages with
+   
+   install.packages(c('tidyverse','vtable','car','jtools'),dependencies = TRUE)
+   
+   And then come back in with swirl()
+   
+- Class: cmd_question
+  Output: Now load the tidyverse package.
+  CorrectAnswer: library(tidyverse)
+  AnswerTests: omnitest(correctExpr='library(tidyverse)')
+  Hint: Just type library(tidyverse)
+
+- Class: cmd_question
+  Output: Now load the vtable package.
+  CorrectAnswer: library(vtable)
+  AnswerTests: omnitest(correctExpr='library(vtable)')
+  Hint: Just type library(vtable)
+
+- Class: cmd_question
+  Output: Now load the jtools package.
+  CorrectAnswer: library(jtools)
+  AnswerTests: omnitest(correctExpr='library(jtools)')
+  Hint: Just type library(jtools)
+
+- Class: cmd_question
+  Output: Now load the car package.
+  CorrectAnswer: library(car)
+  AnswerTests: omnitest(correctExpr='library(car)')
+  Hint: Just type library(car)
+
+- Class: cmd_question
+  Output: |-
+   Now load the Cowles data set from the **car** package with data(Cowles)
+   
+   This data set contains four variables:
+   
+   volunteer: whether someone chose to volunteer for psychological research ('yes') or not ('no')
+   
+   sex: "female" or "male"
+   
+   neuroticism: a personality score for neuroticism
+   
+   extraversion: a personality score for extraversion  
+  CorrectAnswer: data(Cowles)
+  AnswerTests: omnitest(correctExpr='data(Cowles)')
+  Hint: Just type data(Cowles)
+
+- Class: cmd_question
+  Output: Use vtable to look at the kinds of variables we have.  
+  CorrectAnswer: vtable(Cowles)
+  AnswerTests: expr_uses_func('vtable') | expr_uses_func('vt')
+  Hint: Send Cowles to the vtable function.
+
+- Class: cmd_question
+  Output: |-
+   "sex" could be a little difficult to interpret, so let's create a logical-format binary variable.
+   
+   Use mutate to update Cowles with a new variable "male" that's TRUE if sex == 'male' and FALSE otherwise.
+   
+   (Hint: == checks for equality)
+  CorrectAnswer: Cowles <- Cowles %>% mutate(male = sex == 'male')
+  AnswerTests: identical(Cowles[['male']], Cowles[['sex']] == 'male')
+  Hint: |- 
+   sex == 'male' will give you TRUE and FALSE for males and females.
+   
+   mutate(newvarname = calculation) will create the new variable
+   
+   Now just ship Cowles to that mutate function, and overwrite the old Cowles!
+
+- Class: cmd_question
+  Output: |-
+   Now, similarly, create a new variable "volunteered" that's TRUE if volunteer == 'yes' and FALSE otherwise.
+  CorrectAnswer: Cowles <- Cowles %>% mutate(volunteered = volunteer == 'yes')
+  AnswerTests: identical(Cowles[['volunteered']], Cowles[['volunteer']] == 'yes')
+  Hint: Repeat your code from the last step but have volunteered instead of male and volunteer == 'yes' instead of sex == 'male'
+
+- Class: cmd_question
+  Output: Perform a regression using volunteered and male that will tell us whether men or women are more likely to volunteer for psychological research. Store the regression as gender_diff
+  CorrectAnswer: gender_diff <- lm(volunteered ~ male, data = Cowles)
+  AnswerTests: ifelse(exists('gender_diff'),identical(predict(gender_diff),predict(lm(volunteered ~ male, data = Cowles))),FALSE)
+  Hint: Regressing a variable on a binary variable will compare the means of the dependent variable over the values of the binary variable.
+
+- Class: cmd_question
+  Output: Use export_summs() to look at the regression output.
+  CorrectAnswer: export_summs(gender_diff)
+  AnswerTests: expr_uses_func('export_summs')
+  Hint: Just send gender_diff to export_summs.
+
+- Class: exact_question
+  Output: Using the regression table, what proportion of WOMEN volunteer for psychological research? Put your answer as a number between 0 and 1.
+  CorrectAnswer: .45
+  AnswerTests: omnitest(correctVal=.45)
+  Hint: The intercept gives the prediction when all the independent variables are 0.
+
+- Class: exact_question
+  Output: Using the regression table, what proportion of MEN volunteer for psychological research? Put your answer as a number between 0 and 1.
+  CorrectAnswer: .39
+  AnswerTests: omnitest(correctVal=.39)
+  Hint: If male = 1, what will this regression equation predict?
+
+- Class: mult_question
+  Output: Is the difference in volunteer rates different between men and women? Is it statistically significant at the 1% level?
+  AnswerChoices: Men volunteer more than women, but it's not significant at 1%; Men volunteer more than women, and it's significant at 1%; Women volunteer more than men, but it's not significant at 1%; Women volunteer more than men, and it's significant at 1%
+  CorrectAnswer: Women volunteer more than men, but it's not significant at 1%
+  AnswerTests: omnitest(correctVal='Women volunteer more than men, but it\'s not significant at 1%')
+  Hint: The coefficient on male shows how the prediction changes when male changes from 0 to 1.
+
+- Class: cmd_question
+  Output: |- 
+   Let's pretend we also had hair color on these subjects.
+   
+   Create a hair color variable by pasting in:
+   
+   Cowles <- Cowles %>% mutate(hair = c(rep('Brown',500),rep('Black',500),rep('Blonde',421)))
+  CorrectAnswer: Cowles <- Cowles %>% mutate(hair = c(rep('Brown',500),rep('Black',500),rep('Blonde',421)))
+  AnswerTests: omnitest(correctExpr="Cowles <- Cowles %>% mutate(hair = c(rep('Brown',500),rep('Black',500),rep('Blonde',421)))")
+  Hint: Copy/paste the code
+
+- Class: cmd_question
+  Output: Regress volunteered on hair, and send the result straight to export_summs()
+  CorrectAnswer: lm(volunteered~hair, data = Cowles) %>% export_summs()
+  AnswerTests: expr_uses_func('export_summs')
+  Hint: Regress volunteered on hair and pass the result into export_summs.
+
+- Class: mult_question
+  Output: How can we interpret the coefficient of 0 on hairBlonde?
+  AnswerChoices: No blonde people volunteered; .43 more blonde people volunteered than brown-haired people; The same proportion of blonde and black-haired people volunteered; .57-.43 = .14 of blonde-haired people volunteered
+  CorrectAnswer: The same proportion of blonde and black-haired people volunteered
+  AnswerTests: omnitest(correctVal='The same proportion of blonde and black-haired people volunteered')
+  Hint: The coefficient of binary variables from a categorical like hair show the difference relative to the excluded category
+
+- Class: figure
+  Output: Now to the other variables. Look at this graph showing the mean proportion volunteering for psych research for different values of extraversion.
+  Figure: cowles_poly.R
+  FigureType: new
+
+- Class: cmd_question
+  Output: Regress volunteered on extraversion and store the result as m1.
+  CorrectAnswer: m1 <- lm(volunteered ~ extraversion, data = Cowles)
+  AnswerTests: ifelse(exists('m1'), identical(predict(m1),predict(lm(volunteered ~ extraversion, data = Cowles))),FALSE)
+  Hint: You know how to run a regression!
+
+- Class: cmd_question
+  Output: Now, this graph isn't showing the curviest line I've ever seen, but it has curves! We may want a polynomial here. Regress volunteered on extraversion, and, using I(), extraversion squared. Store the result as m2.
+  CorrectAnswer: m2 <- lm(volunteered ~ extraversion + I(extraversion^2), data = Cowles)
+  AnswerTests: ifelse(exists('m2'), cor(predict(m2),predict(lm(volunteered ~ extraversion + I(extraversion^2), data = Cowles))) > .99,FALSE)
+  Hint: You can add a squared term to a regression with I(varname^2)
+
+- Class: cmd_question
+  Output: Use export_summs() to look at both m1 and m2. Include the option digits = 3.
+  CorrectAnswer: export_summs(m1,m2)
+  AnswerTests: omnitest(correctExpr='export_summs(m1,m2,digits=3)')
+  Hint: Just do export_summs(m1,m2, digits=3)
+
+- Class: mult_question
+  Output: The relationship between volunteering and extraversion is obviously positive. But the coefficient on extraversion in m2 is negative! Should we be concerned?
+  AnswerChoices: No, because the individual coefficients don't mean much when you're using a polynomial; Yes, there's probably something wrong if the model is that far off the obvious relationship; No, because it's insignificant anyway; Yes, because it's also bigger than the coefficient on extraversion squared
+  CorrectAnswer: No, because the individual coefficients don't mean much when you're using a polynomial
+  AnswerTests: omnitest(correctVal="No, because the individual coefficients don't mean much when you're using a polynomial")
+  Hint: When you have multiple versions of the same variable in a regression, you need to consider them all together.
+
+- Class: exact_question
+  Output: What is the effect of one additional unit of extraversion on the probability of volunteering when extraversion is 4?
+  CorrectAnswer: .004
+  AnswerTests: omnitest(correctVal=.004)
+  Hint: The derivative of Y = aX+bX^2 is a + 2bX.
+
+- Class: figure
+  Output: Moving away from the Cowles data, here are four graphs of distributions of data.
+  Figure: log_graphs.R
+  FigureType: new
+
+- Class: mult_question
+  Output: Which of these four graphs shows the distribution of the variable we'd be most likely to want to take the logarithm of?
+  AnswerChoices: Graph A; Graph B; Graph C; Graph D
+  CorrectAnswer: Graph C
+  AnswerTests: omnitest(correctVal='Graph C')
+  Hint: We usually want logarithms for skewed data, especially right-skewed data. And we can't use it for negative values.
+
+- Class: cmd_question
+  Output: |- 
+   Copy in the following regression code:
+   
+   export_summs(lm(log(extraversion) ~ male, data = Cowles))
+  CorrectAnswer: export_summs(lm(log(extraversion) ~ male, data = Cowles))
+  AnswerTests: omnitest(correctExpr='export_summs(lm(log(extraversion) ~ male, data = Cowles))')
+  Hint: Copy/paste
+
+- Class: mult_question
+  Output: How can we interpret the coefficient on maleTRUE?
+  AnswerChoices: Men have an extraversion score .02 lower than women; The average male extraversion score is -.02 in log terms, which is exp(-.02) overall; Men have extraversion scores 2 percent lower than women; Higher extraversion is associated with being 2 percent less likely to be male; Men have 20% lower extraversion scores than women
+  CorrectAnswer: Men have extraversion scores 2 percent lower than women
+  AnswerTests: omnitest(correctVal='Men have extraversion scores 2 percent lower than women')
+  Hint: A one-unit change in log(Y) works out to a 100% change in Y.
+
+- Class: cmd_question
+  Output: |-
+   Almost there!
+   
+   Run a regression of volunteered on male, extraversion, and their interaction.
+   
+   Store the result as m3
+  CorrectAnswer: m3 <- lm(volunteered ~ male*extraversion, data = Cowles)
+  AnswerTests: ifelse(exists('m3'),cor(predict(m3),predict(lm(volunteered ~ male*extraversion, data = Cowles))) > .99,FALSE)
+  Hint: You can include, X, Z, and X times Z with X*Z.
+
+- Class: cmd_question
+  Output: Use export_summs() to look at m3.
+  CorrectAnswer: export_summs(m3)
+  AnswerTests: expr_uses_func('export_summs')
+  Hint: Just send m3 to export_summs
+
+- Class: exact_question
+  Output:  What is the effect of a one-unit change in extraversion on the probability of a woman volunteering?
+  CorrectAnswer: .02
+  AnswerTests: omnitest(correctVal = .02)
+  Hint: Plug maleTRUE = 0 into the equation and see what the slope of extraversion is.
+
+- Class: exact_question
+  Output: What is the effect of a one-unit change in extraversion on the probability of a man volunteering?
+  CorrectAnswer: .02
+  AnswerTests: omnitest(correctVal = .02)
+  Hint: Plug maleTRUE = 1 into the equation and see what the slope of extraversion is.
+
+- Class: exact_question
+  Output: What is the probability that a man with an extraversion score of 0 volunteers?
+  CorrectAnswer: .19
+  AnswerTests: omnitest(correctVal = .19)
+  Hint: Plug maleTRUE = 1 and extraversion = 0 into the equation and see what you get!

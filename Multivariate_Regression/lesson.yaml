@@ -116,7 +116,7 @@
    
    Run a regression of DaysPhysHlthBad on SleepHrsNight and all the controls necessary to causally identify the effect of SleepHrsNight on DaysPhysHlthBad. Don't include any unnecessary controls! Save this regression as multi2.
   CorrectAnswer: multi2 <- lm(DaysPhysHlthBad ~ SleepHrsNight + Age + HHIncomeMid + Depressed + TVHrsDay, data = NHANES)
-  AnswerTests: ifelse(exists('multi2'),identical(predict(multi2),predict(lm(DaysPhysHlthBad ~ SleepHrsNight + Age + HHIncomeMid + Depressed + TVHrsDay, data = NHANES))),FALSE)
+  AnswerTests: ifelse(exists('multi2'),1 - cor(predict(multi2),predict(lm(DaysPhysHlthBad ~ SleepHrsNight + Age + HHIncomeMid + Depressed + TVHrsDay, data = NHANES))) < .0001,FALSE)
   Hint: |-
    You need to include the set of variables that closes all paths other than the ones you're interested in.
    
