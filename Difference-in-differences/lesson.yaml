@@ -1,0 +1,286 @@
+
+
+
+- Class: meta
+  Course: Econometrics
+  Lesson: Difference-in-differences
+  Author: Peter Nencka
+  Type: Standard
+  Organization: Miami University Ohio
+  Version: 2.4.5
+
+- Class: text
+  Output: |- 
+   Welcome to the Swirl econometrics course.
+   
+   This lesson will work through examples of the difference-in-differences (DiD) method.
+   
+   Before starting, you should have the **tidyverse**, **haven**, **vtable**, **jtools**, **gtrendsR*, and **lubridate** packages installed. Please exit now and install these packages if you do not have them.
+
+
+- Class: text
+  Output: |-
+
+   First, we will work with some data from Google Trends.
+     
+   Suppose that you were a seller of bread yeast. You are interested in how consumer interest in sourdough bread baking changed during the 2020 COVID-19 lockdowns.
+   
+   Google Trends data might help you answer this question.
+   
+
+- Class: cmd_question
+  Output: |- 
+   Let's start by loading up the packages we'll need. Use the library() function to load the tidyverse package.
+  CorrectAnswer: library(tidyverse)
+  AnswerTests: omnitest(correctExpr='library(tidyverse)')
+  Hint: Take the name of the package and feed that to the library() function.
+
+- Class: cmd_question
+  Output: |- 
+   Great! Now do lubridate. (lubridate is part of the tidyverse, but needs to be loaded seperately)
+  CorrectAnswer: library(lubridate)
+  AnswerTests: omnitest(correctExpr='library(lubridate)')
+  Hint: Take the name of the package and feed that to the library() function.
+
+- Class: cmd_question
+  Output: |- 
+   And now load jtools.
+  CorrectAnswer: library(jtools)
+  AnswerTests: omnitest(correctExpr='library(jtools)')
+  Hint: Take the name of the package and feed that to the library() function.
+
+- Class: cmd_question
+  Output: |- 
+   And now load gtrendsR.
+  CorrectAnswer: library(gtrendsR)
+  AnswerTests: omnitest(correctExpr='library(gtrendsR)')
+  Hint: Take the name of the package and feed that to the library() function.
+
+- Class: cmd_question
+  Output: |- 
+   Last but not least, load haven
+  CorrectAnswer: library(haven)
+  AnswerTests: omnitest(correctExpr='library(haven)')
+  Hint: Take the name of the package and feed that to the library() function.
+
+- Class: mult_question
+  Output: |- 
+   Google Trends allows us to see the volume of searches for the term "sourdough bread" before and after the lockdowns started in the United States. Why might comparing these volumes before and after be a misleading estimate of the effects of lockdowns on sourdough bread interest?  
+  AnswerChoices: Bread consumption might be seasonal;Something else that promoted bread might have happened at the same time as lockdowns;People might Google less as the weather got nicer after lockdowns; All of these answers 
+  CorrectAnswer: All of these answers
+  AnswerTests: omnitest(correctVal='All of these answers')
+  Hint: Think of all the ways a simple pre-post comparison may be biased.
+
+- Class: cmd_question
+  Output: |- 
+    There are many problems with simple pre-post comparisons.
+    
+    Instead, we will attempt to compare the search volume for sourdough with an unrelated product, like "cereal." While imperfect, at least we will have a baseline volume of searches to compare against.
+    
+    We will load data from the gtrendsR package, which you can use to extract information for any search term.
+    
+    For example, I could pull information on the search volume of "baseball" and "football" for this year using the command: 
+    
+    gtrends(c("baseball", "football"), time = "2020-01-01 2020-07-11", geo = "US")
+
+    Modify this command to search for "sourdough bread" and "cereal". Save the resulting list of objects as trends
+  CorrectAnswer: trends <- gtrends(c("sourdough bread", "cereal"), time = "2020-01-01 2020-07-11", geo = "US")
+  AnswerTests: omnitest(correctExpr='trends <- gtrends(c("sourdough bread", "cereal"), time = "2020-01-01 2020-07-11", geo = "US")')
+  Hint: Remember to use 'trends <-' to save the list
+  
+
+- Class: cmd_question
+  Output: |- 
+    Trends is a list holding multiple dataframes. We are interested in the interest_over_time dataframe.
+    
+    Copy this code into the console to create a tibble that grabs the correct dataframe and formats dates correctly 
+    
+    trends_time <- as_tibble(trends$interest_over_time)  %>% mutate(date = ymd(date))
+
+  CorrectAnswer: trends_time <- as_tibble(trends$interest_over_time)  %>% mutate(date = ymd(date))
+  AnswerTests: omnitest(correctExpr='trends_time <- as_tibble(trends$interest_over_time)  %>% mutate(date = ymd(date))')
+  Hint: Copy the indicated syntax!
+  
+- Class: cmd_question
+  Output: |- 
+    Examine the structure of trends_time using vtable 
+    
+    (remember that vtable was not loaded earlier, so you need to use "::")
+    
+  CorrectAnswer: vtable::vtable(trends_time) 
+  AnswerTests: omnitest(correctExpr='vtable::vtable(trends_time)')
+  Hint: Remember the syntax is vtable::vtable(tibblename)
+  
+- Class: cmd_question
+  Output: |- 
+    A simple difference-in-differences model takes the form:
+    
+    outcome = treated + post_treatment + treated*post_treatment
+    
+    To estimate this model, first we need to create these variables.
+    
+    First, add a logical dummy variable to trends_time named 'treated' set to TRUE when keyword = "sourdough bread" and FALSE otherwise. 
+    
+  CorrectAnswer: trends_time <- trends_time %>% mutate(treated = keyword == "sourdough bread")
+  AnswerTests: identical(trends_time[['treated']], trends_time[['keyword']] == 'sourdough bread')
+  Hint: Your syntax should look something like trends_time <- trends_time %>% mutate(treated = variable == "keyword")
+  
+- Class: cmd_question
+  Output: |- 
+  
+    Next, add a logical dummy variable to trends_time named post_treatment equal to TRUE when date is greater than or equal to 2020-03-18, the first state lockdown order
+  
+    Note: you should use as.Date("2020-03-18") so that R knows you are working with a date value.
+  CorrectAnswer: trends_time <- trends_time %>% mutate(post_treatment = date >= as.Date("2020-03-18"))
+  AnswerTests: identical(trends_time[['post_treatment']], trends_time[['date']] >= as.Date("2020-03-18"))
+  Hint: Your mutate code should read mutate(post_treatment = date >= as.Date("2020-03-18"))
+
+
+- Class: cmd_question
+  Output: |- 
+    Using your two new dummy variables, estimate the simple difference-in-difference regression model, using hits (a measure of how popular a search term is) as your outcome variable.
+    
+    Save the resulting estimates as bread_diff_in_diff
+  CorrectAnswer: bread_diff_in_diff <- lm(hits ~ treated * post_treatment, data = trends_time)  
+  AnswerTests: ifelse(exists('bread_diff_in_diff'),identical(predict(bread_diff_in_diff),predict(lm(hits ~ treated * post_treatment, data = trends_time))),FALSE)
+  Hint: Remember the 'outcome = treated + post_treatment + treated*post_treatment' formula
+
+- Class: cmd_question
+  Output: |- 
+    Summarize your output using export_summs
+    
+  CorrectAnswer: export_summs(bread_diff_in_diff)
+  AnswerTests: omnitest(correctExpr='export_summs(bread_diff_in_diff)')
+  Hint:
+
+- Class: cmd_question
+  Output: |- 
+   That is a large increase in search volume in the post-period relative to searches for cereal.  
+   
+   Visualize the effect using this command and look at the Plots display in RStudio
+   
+   ggplot(trends_time, aes(x=date, y=hits, group = keyword, color = keyword)) + geom_line() + theme_minimal()  + geom_vline(xintercept = as.Date("2020-03-18"))
+
+  CorrectAnswer: ggplot(trends_time, aes(x=date, y=hits, group = keyword, color = keyword)) + geom_line() + theme_minimal()  + geom_vline(xintercept = as.Date("2020-03-18"))
+  AnswerTests: omnitest(correctExpr='ggplot(trends_time, aes(x=date, y=hits, group = keyword, color = keyword)) + geom_line() + theme_minimal()  + geom_vline(xintercept = as.Date("2020-03-18"))')
+  Hint: Just copy the code!
+
+- Class: text
+  Output: |- 
+    After following similar trends for months, there is a sharp uptick in sourdough searches near the time period when the lockdowns begin!
+    
+    That said, the uptick was almost completely gone by July. Your difference-in-difference estimate picked up the average increase in search volume over the whole post-period. You could have easily estimated period-by-period treatment effects as well, but that is beyond the scope of this course.
+ 
+- Class: text
+  Output: |- 
+    Next, we will do a similar exercise to study the relationship between labor supply and the Earned Income Tax Credit (EITC).
+    
+    The EITC is a tax credit aimed at the working poor. The tax credit is designed to be zero if you have no income and to increase as you earn more. Before continuing, read the first 7 paragraphs of this policy brief to learn more about the EITC: https://www.cbpp.org/research/federal-tax/policy-basics-the-earned-income-tax-credit
+
+- Class: text
+  Output: |- 
+    The EITC is meant to reward work. It is an empirical question if it actually increases labor supply.
+    
+    Here, we will study the effects of the 1994 EITC expansion, which dramatically increased the size of the award.
+    
+- Class: cmd_question
+  Output: |- 
+    Type eitc<-read_dta("https://github.com/CausalReinforcer/Stata/raw/master/eitc.dta") to load data on a sample of women and their labor supply decisions
+
+  CorrectAnswer: eitc<-read_dta("https://github.com/CausalReinforcer/Stata/raw/master/eitc.dta")
+  AnswerTests: omnitest(correctExpr='eitc<-read_dta("https://github.com/CausalReinforcer/Stata/raw/master/eitc.dta")')
+  Hint: Just type the code in!
+
+- Class: cmd_question
+  Output: |- 
+    Summarize the eitc tibble using vtable
+
+  CorrectAnswer: vtable::vtable(eitc)
+  AnswerTests: omnitest(correctExpr='vtable::vtable(eitc)')
+  Hint:
+  
+- Class: cmd_question
+  Output: |- 
+    Create a logical dummy variable named post_expansion equal to 1 for years equal to or greater than the year the EITC expanded (1994)
+
+    Add the dummy variable to the eitc tibble in the same line of code
+  CorrectAnswer: eitc <- eitc %>% mutate(post_expansion = year >= 1994)
+  AnswerTests: identical(eitc[['post_expansion']], eitc[['year']] >= 1994)
+  Hint: Look back at the syntax you used earlier in the lesson!
+  
+- Class: cmd_question
+  Output: |- 
+    Create a logical dummy variable named treated_women equal to 1 for women with any children
+
+    Since this expansion did not affected childless women, women with children are an excellent treatment group.
+    
+    Add the dummy variable to the EITC tibble in the same line of code
+  CorrectAnswer: eitc <- eitc %>% mutate(treated_women = children >= 1)
+  AnswerTests: identical(eitc[['treated_women']], eitc[['children']] >= 1)
+  Hint: Look back at the syntax you used earlier in the lesson! 
+  
+- Class: mult_question
+  Output: |- 
+   What assumption is required to claim that the difference-in-difference estimator in this case would estimate a causal effect of the policy on labor supply?
+  AnswerChoices: Labor supply for women with and without children would have followed the same trend after 1994 in the absence of the expansion;Labor supply followed similar trends in the past;Women with and without kids look identical on observable characteristics; In the absence of the policy, women would have worked less anyway. 
+  CorrectAnswer: Labor supply for women with and without children would have followed the same trend after 1994 in the absence of the expansion
+  AnswerTests: omnitest(correctVal='Labor supply for women with and without children would have followed the same trend after 1994 in the absence of the expansion')
+  Hint: 
+
+- Class: cmd_question
+  Output: |- 
+    Calculate the mean labor supply by 'treated_women' and 'post_expansion' status using the following command
+    
+    eitc %>%  group_by(treated_women, post_expansion) %>% summarise(mean_ls = mean(work))   
+
+    Notice that 'work' is a variable that equals 1 if the woman is in the labor force, and zero otherwise
+  CorrectAnswer: eitc %>%  group_by(treated_women, post_expansion) %>% summarise(mean_ls = mean(work))   
+  AnswerTests: omnitest(correctExpr='eitc %>%  group_by(treated_women, post_expansion) %>% summarise(mean_ls = mean(work))')
+  Hint:
+
+- Class: cmd_question
+  Output: |- 
+    Using these means, calculate the difference-in-difference estimated increase in working probability for women with children after the 1994 EITC expansion  
+  CorrectAnswer: (0.491-0.446) - (0.573-0.575)
+  AnswerTests: omnitest(correctVal=(0.491-0.446) - (0.573-0.575))
+  Hint: Compare the increase in labor supply for treated women to the change for women without children!
+
+- Class: cmd_question
+  Output: |- 
+    Now estimate the simple difference-in-difference regression model.
+    
+    Save the resulting estimates as eitc_diff_in_diff
+  CorrectAnswer: eitc_diff_in_diff <- lm(work ~ treated_women * post_expansion, data = eitc)  
+  AnswerTests: ifelse(exists('eitc_diff_in_diff'),identical(predict(eitc_diff_in_diff),predict(lm(work ~ treated_women * post_expansion, data = eitc))),FALSE)
+  Hint: Remember the 'outcome = treated + post_treatment + treated*post_treatment' formula
+
+- Class: cmd_question
+  Output: |- 
+    Summarize your output using export_summs
+    
+  CorrectAnswer: export_summs(eitc_diff_in_diff)
+  AnswerTests: omnitest(correctExpr='export_summs(eitc_diff_in_diff)')
+  Hint:
+
+- Class: mult_question
+  Output: |- 
+   What is the interpretation of the coefficient on treated_women:post_expansion (assuming identificaiton assumptions hold) 
+  AnswerChoices: After the expansion, women with kids worked 0.5 hours more; After the expansion, women with kids worked more than women without kids; After the expansion, women with kids were 5 percent more likely to work; After the expansion, women with kids were 5 percentage points more likely to work
+  CorrectAnswer: After the expansion, women with kids were 5 percentage points more likely to work
+  AnswerTests: omnitest(correctVal='After the expansion, women with kids were 5 percentage points more likely to work')
+  Hint: Be careful of the difference between percent and percentage points!
+
+- Class: cmd_question
+  Output: |- 
+      As the last question illustrates, it is very easy to mistake **percentage point** effects with **percent** increases
+      
+      Using your mean for treated women in the pre-period (0.446) and your DiD regression estimate of 0.05, what is the **percent** increase in labor supply attributable to the policy for women with children? 
+      
+      Keep everything in decimal form and calculate your answer in the console 
+  CorrectAnswer: 0.05/0.446
+  AnswerTests: omnitest(correctVal=(0.05/0.446))
+  Hint: Make sure to use the values I listed in the question to calculate your answer. Keep everything in decimal form (e.g., 0.10 is 10 percent)
+   
+    
+    
+    

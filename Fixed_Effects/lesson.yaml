@@ -1,0 +1,291 @@
+- Class: meta
+  Course: Econometrics
+  Lesson: Fixed Effects
+  Author: Nick Huntington-Klein
+  Type: Standard
+  Organization: Seattle University
+  Version: 2.4.5
+
+- Class: text
+  Output: |-
+   This Swirl lesson will cover the various features on the right-hand-side of the regression equation, including binary and categorical variables, variable transformations, and interactions.
+   
+   This lesson will make use of the **tidyverse**, **vtable**, **car**, **jtools**, **estimatr**, and **wooldridge** packages.
+   
+   If you don't have these, exit out of this lesson with bye(), install the packages with
+   
+   install.packages(c('tidyverse','vtable','car','jtools','wooldridge','estimatr'),dependencies = TRUE)
+   
+   And then come back in with swirl()
+   
+- Class: cmd_question
+  Output: Now load the tidyverse package.
+  CorrectAnswer: library(tidyverse)
+  AnswerTests: omnitest(correctExpr='library(tidyverse)')
+  Hint: Just type library(tidyverse)
+
+- Class: cmd_question
+  Output: Now load the vtable package.
+  CorrectAnswer: library(vtable)
+  AnswerTests: omnitest(correctExpr='library(vtable)')
+  Hint: Just type library(vtable)
+
+- Class: cmd_question
+  Output: Now load the jtools package.
+  CorrectAnswer: library(jtools)
+  AnswerTests: omnitest(correctExpr='library(jtools)')
+  Hint: Just type library(jtools)
+
+- Class: cmd_question
+  Output: Now load the car package.
+  CorrectAnswer: library(car)
+  AnswerTests: omnitest(correctExpr='library(car)')
+  Hint: Just type library(car)
+
+- Class: cmd_question
+  Output: Now load the estimatr package.
+  CorrectAnswer: library(estimatr)
+  AnswerTests: omnitest(correctExpr='library(estimatr)')
+  Hint: Just type library(estimatr)
+
+- Class: cmd_question
+  Output: And finally load wooldridge
+  CorrectAnswer: library(wooldridge)
+  AnswerTests: omnitest(correctExpr='library(wooldridge)')
+  Hint: Just type library(wooldridge)
+
+
+- Class: cmd_question
+  Output: |-
+   Now load the mathpnl data set from the **wooldridge** package with data(mathpnl)
+  CorrectAnswer: data(mathpnl)
+  AnswerTests: omnitest(correctExpr='data(mathpnl)')
+  Hint: Just type data(mathpnl)
+
+- Class: cmd_question
+  Output: Use help(mathpnl) to look at the description of the data and to see the  variables and what they are.
+  CorrectAnswer: help(mathpnl)
+  AnswerTests: omnitest(correctExpr='help(mathpnl)')
+  Hint: Just type help(mathpnl)
+
+
+- Class: cmd_question
+  Output: |-
+   We are only going to be working with a few variables:
+   
+   distid: the district identifier (our "individual" for fixed effects)
+   
+   year: the year the data is from
+   
+   math4: the percentage of 4th grade students who are "satisfactory" or better in math
+   
+   expp: expenditure per pupil
+   
+   lunch: the percentage of students eligible for free lunch
+   
+   Use select() from dplyr to pick just these variables from mathpnl, overwriting the original mathpnl
+  CorrectAnswer: mathpnl <- mathpnl %>% select(distid, year, math4, expp, lunch)
+  AnswerTests: expr_creates_var('mathpnl'); expr_uses_func('select'); ncol(mathpnl) == 5; sum(c('distid','year','math4','expp','lunch') %in% names(mathpnl)) == 5
+  Hint: select() takes the data set as an argument, followed by the names of the variables you want to keep. Remember to use <- or = to overwrite the original mathpnl!
+
+- Class: cmd_question
+  Output: Click on the data to look at it.
+  CorrectAnswer: View(mathpnl)
+  AnswerTests: omnitest(correctExpr='View(mathpnl)')
+  Hint: Click on the data in the Environment tab, or type View(mathpnl)
+
+- Class: mult_question
+  Output: How can we tell by looking at it that this is a panel data set?
+  AnswerChoices: It has multiple rows per distid; It has a large number of observations; It has a year variable in it; It has "pnl" in the name
+  CorrectAnswer: It has multiple rows per distid
+  AnswerTests: omnitest(correctVal='It has multiple rows per distid')
+  Hint: Panel data has multiple observations per value of an identifier variable
+
+- Class: cmd_question
+  Output: Use vtable() with the lush = TRUE option to look at the variables more closely, including the number of unique values each variable takes (nuniq)
+  CorrectAnswer: vtable(mathpnl, lush = TRUE)
+  AnswerTests: omnitest(correctExpr='vtable(mathpnl, lush = TRUE)') | omnitest(correctExpr='mathpnl %>% vtable(lush = TRUE)')
+  Hint: Send mathpnl to vtable, and set the lush option to TRUE.
+
+- Class: exact_question
+  Output: |- 
+   Panel data is often described as "N by T". That is, the number of different individuals N and the number of time periods T.
+   
+   What is N in this data?
+  CorrectAnswer: 550
+  AnswerTests: omnitest(correctVal = 550)
+  Hint: Look at the number of unique values that distid takes
+
+- Class: exact_question
+  Output: |- 
+   What is T in this data?
+  CorrectAnswer: 7
+  AnswerTests: omnitest(correctVal = 7)
+  Hint: Look at the number of unique values that year takes
+
+
+- Class: cmd_question
+  Output: |-
+   A *balanced* panel is one in which each individual shows up in every single time period.
+   
+   We can check if this data is balanced by calculating nuniq (from **vtable**) for each distid, and checking that they're all 7.
+   
+   Use the following code to create the variable num_years, with the number of different year values that show up for each distid.
+   
+   nyrs <- mathpnl %>% group_by(distid) %>% summarize(num_years = nuniq(year)) 
+  CorrectAnswer: nyrs <- mathpnl %>% group_by(distid) %>% summarize(num_years = nuniq(year)) 
+  AnswerTests: omnitest(correctExpr='nyrs <- mathpnl %>% group_by(distid) %>% summarize(num_years = nuniq(year)) ')
+  Hint: Copy/paste the code.
+
+- Class: cmd_question
+  Output: |-
+   Now use table() with nyrs %>% pull(num_years) to see the different values that num_years takes.
+  CorrectAnswer: nyrs %>% pull(num_years) %>% table()
+  AnswerTests: any_of_exprs('nyrs %>% pull(num_years) %>% table()','table(nyrs %>% pull(num_years))','table(nyrs$num_years)')
+  Hint: Take nyrs %>% pull(num_years), which gives you the num_years variable, and send that to table()
+
+- Class: mult_question
+  Output:    |-
+      If T is 7, and num_years only ever takes the value 7 for every distid, then the data is balanced!
+      
+      Do we have a balanced panel?
+  AnswerChoices: Yes; No
+  CorrectAnswer: Yes
+  AnswerTests: omnitest(correctVal='Yes')
+  Hint: table() shows the different values a variable takes. If all the observations take a value of 7, it's balanced. Otherwise, it's not.
+
+- Class: text
+  Output: Note that even if we *didn't* have a balanced panel, fixed effects would still work. We'd just have a few other things to worry about.
+
+- Class: figure
+  Output: Take a look at these four graphs...
+  Figure: spot_the_fe.R
+  FigureType: new
+
+- Class: mult_question
+  Output: In which of those four graphs do the straight lines represent predicted values from the model math4 ~ expp with fixed effects for distid?
+  AnswerChoices: Graph A; Graph B; Graph C; Graph D 
+  CorrectAnswer: Graph D
+  AnswerTests: omnitest(correctVal='Graph D')
+  Hint: In fixed effects, the different districts have lines with the same slope, but moving up and down.
+
+- Class: cmd_question
+  Output: Regress math4 on expp, with lunch added as a control. Store the result as ols.
+  CorrectAnswer: ols <- lm(math4 ~ expp + lunch, data = mathpnl)
+  AnswerTests: ifelse(exists('ols'),cor(predict(ols),predict(lm(math4 ~ expp + lunch, data = mathpnl))) > .99,FALSE)
+  Hint: Run a regular lm() regression, with no fixed effects, of math4 on expp and lunch
+
+- Class: cmd_question
+  Output: |-
+   Now we will perform fixed effects by de-meaning the data.
+   
+   We can use group_by(distid) to perform calculations within distid
+   
+   and x = x - mean(x) to subtract the individual mean from x.
+   
+   For example
+   
+   mathpnl_dm <- mathpnl %>% group_by(distid) %>% mutate(x_dm = x - mean(x), y_dm = y - mean(y))
+   
+   Would create mathpnl_dm with a new variable x_dm that is the de-meaned x and a new variable y_dm that is the de-meaned y.
+   
+   Create mathpnl_dm with de-meaned math4, expp, and lunch, called math4_dm, expp_dm, and lunch_dm, respectively.
+  CorrectAnswer: mathpnl_dm <- mathpnl %>% group_by(distid) %>% mutate(math4_dm = math4 - mean(math4), expp_dm = expp - mean(expp), lunch_dm = lunch - mean(lunch))
+  AnswerTests: ifelse(exists('mathpnl_dm'),cor(mathpnl_dm[['math4_dm']],mathpnl %>% group_by(distid) %>% mutate(x = math4 - mean(math4)) %>% pull(x)) > .99 & cor(mathpnl_dm[['expp_dm']], mathpnl %>% group_by(distid) %>% mutate(x = expp - mean(expp)) %>% pull(x)) > .99 &  cor(mathpnl_dm[['lunch_dm']], mathpnl %>% group_by(distid) %>% mutate(x = lunch - mean(lunch)) %>% pull(x)) > .99, FALSE); expr_creates_var('mathpnl')
+  Hint: Take the provided code and replace x with math4, y with expp, and make a similar line for lunch.
+
+- Class: text
+  Output: (by the way, the next time you have to do the same calculation to a bunch of different variables in dplyr, try looking at the across() function to save yourself some time!)
+
+- Class: cmd_question
+  Output: Regress math4_dm on expp_dm with lunch_dm as a control, and save the result as fe_dm
+  CorrectAnswer: fe_dm <- lm(math4_dm ~ expp_dm + lunch_dm, data = mathpnl_dm)
+  AnswerTests: ifelse(exists('fe_dm'),cor(predict(fe_dm),predict(lm(math4_dm ~ expp_dm + lunch_dm, data = mathpnl_dm))) > .99, FALSE)
+  Hint: Just run a regression as normal. Don't forget to use the mathpnl_dm data!
+
+- Class: cmd_question
+  Output: Use export_summs() to look at both ols and fe_dm, with the digits = 3 option.
+  CorrectAnswer: export_summs(ols, fe_dm, digits = 3)
+  AnswerTests: omnitest(correctExpr='export_summs(ols, fe_dm, digits = 3)')
+  Hint: Pass ols and fe_dm to the same export_summs() call. Don't forget digits = 3!
+
+- Class: mult_question
+  Output: |-
+   What is the appropriate interpretation of the 0.012 in the table?
+   
+   (Hint: be sure you know the scale of your variables! Check back at the vtable output in the Viewer tab to see what scale the variables are on)
+  AnswerChoices: A school with $1 more expenditure per student will have 1.2 percent more 4th graders at acceptable than another school with $1 less; A school with $1 more expenditure per student will have 1.2 percent more 4th graders at acceptable than that same school in another year where expenditure is $1 lower; A school with $1 more expenditure per student will have .012 percent more 4th graders at acceptable than another school with $1 less; A school with $1 more expenditure per student will have .012 percent more 4th graders at acceptable than that same school in another year where expenditure is $1 lower
+  CorrectAnswer: A school with $1 more expenditure per student will have .012 percent more 4th graders at acceptable than that same school in another year where expenditure is $1 lower
+  AnswerTests: omnitest(correctVal='A school with $1 more expenditure per student will have .012 percent more 4th graders at acceptable than that same school in another year where expenditure is $1 lower')
+  Hint: math4 is on a 0-100 scale, not 0-1. So a one-unit change is 1 percentage point. Also, since we have fixed effects, we are always comparing a school to itself.
+
+- Class: cmd_question
+  Output: |- 
+   Now we'll forget the de-meaning for a moment and use the least squares dummy variable model.
+   
+   Regress math4 on expp, lunch, and factor(distid) and store the result as fe_lsdv.
+   
+   This (and the linearHypothesis in the next step) might take a while - LSDV can be very slow!
+  CorrectAnswer: fe_lsdv <- lm(math4 ~ expp + lunch + factor(distid), data = mathpnl)
+  AnswerTests: ifelse(exists('fe_lsdv'),cor(predict(fe_lsdv),predict(lm(math4 ~ expp + lunch + factor(distid), data = mathpnl))) > .99, FALSE)
+  Hint: Just do a regular regression and add +factor(distid) into it.
+
+- Class: cmd_question
+  Output: |-
+   One benefit of the LSDV approach is that we can test if the fixed effects are themselves significant.
+   
+   Do
+   
+   linearHypothesis(fe_lsdv, matchCoefs(fe_lsdv, 'distid'))
+   
+   to see if you can reject that the intercept is the same for all districts
+  CorrectAnswer: linearHypothesis(fe_lsdv, matchCoefs(fe_lsdv, "distid"))
+  AnswerTests: omnitest(correctExpr='linearHypothesis(fe_lsdv, matchCoefs(fe_lsdv, "distid"))')
+  Hint: Just copy/paste the code.
+
+- Class: mult_question
+  Output: Can we reject that the intercept is the same for all districts at the 1% level?
+  AnswerChoices: Yes;No
+  CorrectAnswer: Yes
+  AnswerTests: omnitest(correctVal='Yes')
+  Hint: If the p-value is below .01, we can reject.
+
+- Class: cmd_question
+  Output: |-
+   Now we will do fixed effects using a specially-made function.
+   
+   Do help(lm_robust) to look at the syntax for the lm_robust function, paying attention to the fixed_effects option.
+  CorrectAnswer: help(lm_robust)
+  AnswerTests: omnitest(correctExpr='help(lm_robust)')
+  Hint: Just do help(lm_robust)
+
+- Class: cmd_question
+  Output: |-
+   Use lm_robust() to run regress math4 on expp and lunch, with distid as fixed effects. Store the result as fe_robust
+   
+   Don't forget to put a ~ before distid.
+  CorrectAnswer: fe_robust <- lm_robust(math4 ~ expp + lunch, fixed_effects = ~distid, data = mathpnl)
+  AnswerTests: ifelse(exists('fe_robust'),cor(fe_robust$fitted.values,lm_robust(math4 ~ expp + lunch, fixed_effects = ~distid, data = mathpnl)$fitted.values) > .99, FALSE); expr_uses_func('lm_robust')
+  Hint: lm_robust() takes a regular formula and data= argument, just like lm(). Now just add fixed_effects = ~distid
+
+- Class: cmd_question
+  Output: |-
+   Use export_summs to look at the results for ols, fe_dm, fe_lsdv, and fe_robust all together.
+   
+   Include the options
+   
+   digits = 3
+   
+   and (so all the dummy coefficients from fe_lsdv don't show up)
+   
+   coefs = c('expp','expp_dm','lunch','lunch_dm')
+  CorrectAnswer: export_summs(ols, fe_dm, fe_lsdv, fe_robust, digits = 3, coefs = c('expp','expp_dm','lunch','lunch_dm'))
+  AnswerTests: omnitest(correctExpr='export_summs(ols, fe_dm, fe_lsdv, fe_robust, digits = 3, coefs = c("expp","expp_dm","lunch","lunch_dm"))')
+  Hint: Do export_summs() as normal, feeding in all four regression objects (in that order), and add the digits = 3 and coefs = c('expp','expp_dm','lunch','lunch_dm') options.
+
+- Class: cmd_question
+  Output: |-
+   Finally, use the same code you just had but with plot_coefs(), and remove the digits = 3 argument, so you can see the coefficients from the different models against each other. (Should be a lot of similarities!)
+  CorrectAnswer: plot_coefs(ols, fe_dm, fe_lsdv, fe_robust, coefs = c('expp','expp_dm','lunch','lunch_dm'))
+  AnswerTests: omnitest(correctExpr='plot_coefs(ols, fe_dm, fe_lsdv, fe_robust, coefs = c("expp","expp_dm","lunch","lunch_dm"))')
+  Hint: Take the export_summs() code from last time, remove "digits = 3,", and change export_summs to plot_coefs

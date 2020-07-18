@@ -179,6 +179,17 @@
   AnswerTests: omnitest(correctVal=.004)
   Hint: The derivative of Y = aX+bX^2 is a + 2bX.
 
+- Class: cmd_question
+  Output: |- 
+   Let's test whether extraversion has any predictive power at all.
+   
+   Use linearHypothesis() to test whether all of the extraversion coefficients are jointly zero.
+  CorrectAnswer: linearHypothesis(m2, c("extraversion = 0","I(extraversion^2) = 0"))
+  AnswerTests: omnitest(correctExpr='linearHypothesis(m2, c("extraversion = 0","I(extraversion^2) = 0"))')
+  Hint: linearHypothesis takes as its first argument the model. Then give it a vector (c()) of the tests you want to perform jointly.
+
+
+
 - Class: figure
   Output: Moving away from the Cowles data, here are four graphs of distributions of data.
   Figure: log_graphs.R
@@ -206,6 +217,19 @@
   CorrectAnswer: Men have extraversion scores 2 percent lower than women
   AnswerTests: omnitest(correctVal='Men have extraversion scores 2 percent lower than women')
   Hint: A one-unit change in log(Y) works out to a 100% change in Y.
+
+- Class: mult_question
+  Output: |-
+     What if we had insteat run the regression
+     
+     lm(male ~ log(extraversion), data = Cowles)
+     
+     and got a coefficient of -.02. How would we interpret this coefficient?
+  AnswerChoices: Men have extraversion scores 2 percent lower than women; People with extraversion scores 1 percent higher are 2 percentage points less likely to be a man; People with extraversion scores 1 unit higher are 2 percentage points less likely to be a man; People with extraversion scores 1 percent higher are .02 percentage points less likely to be a man
+  CorrectAnswer: People with extraversion scores 1 percent higher are .02 percentage points less likely to be a man
+  AnswerTests: omnitest(correctVal='People with extraversion scores 1 percent higher are .02 percentage points less likely to be a man')
+  Hint: A one-unit change in log(X) 100% change in X. So a 1 percent change in X is equivalent to a .01 change in log(X).
+
 
 - Class: cmd_question
   Output: |-
