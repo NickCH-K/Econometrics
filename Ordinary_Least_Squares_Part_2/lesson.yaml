@@ -33,13 +33,19 @@
    Next let's load our libraries. You can just copy/paste the text below, or type skip() and all the libraries will be loaded.
 
    library(tidyverse)
+   
    library(Ecdat)
+   
    library(vtable)
+   
    library(jtools)
   CorrectAnswer: |-
    library(tidyverse)
+   
    library(Ecdat)
+   
    library(vtable)
+   
    library(jtools)
   AnswerTests: sum(paste0('package:',c('tidyverse','Ecdat','vtable','jtools')) %in% search()) == 4
   Hint: Copy/paste! Or just type skip()

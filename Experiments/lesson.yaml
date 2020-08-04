@@ -1,0 +1,370 @@
+- Class: meta
+  Course: Econometrics
+  Lesson: Experiments
+  Author: Nick Huntington-Klein
+  Type: Standard
+  Organization: Seattle University
+  Version: 2.4.5
+
+- Class: text
+  Output: |-
+   This swirl lesson is all about experiments.
+   
+   It won't be covering too much of experimental design, but will focus on the parts you might need to do in R.
+   
+   That will include power analysis, dealing with attrition, balance, compliance, and evaluating the results of the experiment.
+
+- Class: text
+  Output: |-
+   For this lesson you will need the packages **tidyverse**, **jtools**, **huxtable**, **estimatr**, and **vtable**
+   
+   If you don't have these, you'll need to install them. You can Escape or bye() out of this, install them with install.packages(c('tidyverse','jtools','estimatr','vtable'), dependencies = TRUE), and then swirl() to get back in.
+   
+- Class: cmd_question
+  Output: |-
+   Next let's load our libraries. You can just copy/paste the text below, or type skip() and all the libraries will be loaded.
+
+   library(tidyverse)
+   
+   library(vtable)
+   
+   library(jtools)
+   
+   library(estimatr)
+  CorrectAnswer: |-
+   library(tidyverse)
+   
+   library(vtable)
+   
+   library(jtools)
+   
+   library(estimatr)
+  AnswerTests: sum(paste0('package:',c('tidyverse','vtable','jtools','estimatr')) %in% search()) == 4
+  Hint: Copy/paste! Or just type skip()
+
+
+- Class: text
+  Output: |-
+   You work for a retail clothing company that frequently offers coupons for clothes. The company is curious how effective those coupons actually are.
+   
+   So they ask you to run an experiment!
+   
+   You have a database of people who have bought from you before, and you are going to randomly send some of them coupons, and see how that affects the amount they buy the next time they shop with you (next_purchase).
+   
+   Your design is going to be simple! Randomly assign each person to either be sent a coupon or not sent a coupon.
+
+- Class: cmd_question
+  Output: |-
+   Before you start your experiment, you know that you should do a power analysis to see how many people you should include in your study - more is always better, but it gets expensive! So you'd prefer to only use as many as you need.
+   
+   You'll start with a very basic power analysis (ignoring all complications and just doing a 50/50 randomized split), using the function power.t.test().
+   
+   Use help(power.t.test) to look at how to use this function.
+  CorrectAnswer: help(power.t.test)
+  AnswerTests: omnitest(correctExpr='help(power.t.test)')
+  Hint: Just type power.t.test
+
+- Class: cmd_question
+  Output: |-
+   You want to know the *minimum sample size* necessary to have 90% power to detect an effect at the 95% level (alpha = .05) with a two-sided test.
+   
+   You look back on previous data for your company and, after some digging, find a few things:
+   
+   1. On average, people with coupons spend 10 more on each purchase than people without (this was not from randomized data, but it's a starting place for your anticipated effect)
+   
+   2. The standard deviation of purchase size is 40.
+   
+   Use power.t.test() to run a power analysis with these parameters.
+   
+   (Hint: you will need to fill in three arguments)
+  CorrectAnswer: power.t.test(delta = 10, sd = 40, power = .9)
+  AnswerTests: omnitest(correctExpr='power.t.test(delta = 10, sd = 40, power = .9)')
+  Hint: |-
+   We have a difference of 10 in the previous data, so delta = 10.
+   
+   The standard deviation in prior data is 40, so sd = 40.
+   
+   Then we want 90% (.9) power! Everything else can be defaults.
+
+- Class: exact_question
+  Output: |-
+   Rounding down to the nearest whole number, how many people do you need to recruit to your experiment?
+   
+   (Careful! Be sure to read the entire power.t.test() result!)
+  CorrectAnswer: 337*2
+  AnswerTests: omnitest(correctVal = 337*2)
+  Hint: The "n" number shown in the power.t.test() result is for EACH group, not BOTH groups.
+
+- Class: text
+  Output: |-
+   There is another, more flexible way to do a power analysis: simulation!
+   
+   It's a bit complex to fit inside a Swirl lesson, so what we're going to do is this:
+   
+   Quit out of Swirl (bye() works), and go to the page:
+   
+   https://nickch-k.github.io/EconometricsSlides/Week_08/Power_Simulations.html
+   
+   This will walk you through writing a power analysis simulation. Use the values we already have (effect of 10, sd of 40).
+   
+   Get the power level at three different sample sizes: 500, 674, and 1000.
+   
+   You should get power values of approximately .8, .9, and .97
+   
+   When you're done, come back here and continue on! We'll also show you some example code of how it could have been done.
+   
+   Hint: next_purchase = effect*coupon + rnorm(sample_size, 0, 40)
+
+- Class: text
+  Output: |-
+   Some example code that would run the appropriate power analysis simulation:
+   
+   my_power_function <- function(effect, sample_size) {
+  
+     sig_results <- c()
+      
+     for (i in 1:500) {
+       
+         tib <- tibble(coupon = sample(0:1, sample_size, replace = TRUE)) %>%
+      
+             mutate(next_purchase = effect*coupon + rnorm(sample_size, 0, 40))
+       
+         m <-lm(next_purchase ~ coupon, data = tib)
+       
+         sig_results[i] <- tidy(m)$p.value[2] <= .05
+       
+     }
+     
+     return(mean(sig_results))
+     
+     }
+     
+     my_power_function(10, 500)
+     
+     my_power_function(10, 674)
+     
+     my_power_function(10, 1000)
+
+- Class: figure
+  Output: |-
+   You decide to take your power analysis result as a starting point and overshoot the recommended amount, in case there are any complications (there are always complications).
+   
+   So, you take 1,000 people from your company's database and randomly send assign half of them to be sent a coupon.
+   
+   (The fictionalized data is now being generated as df)
+  Figure: create_data.R
+  FigureType: new
+  
+- Class: cmd_question
+  Output: |-
+   Use vtable() to look at the data that has been generated.
+  AnswerTests: any_of_exprs('vtable(df)', 'vt(df)')
+  Hint: Just send df to vtable()
+
+
+- Class: cmd_question
+  Output: |-
+   We had a few problems with the experiment. One glaring problem is that, due to some changing-address issues and a computer glitch, some people assigned to get a coupon didn't get one, and some people got a coupon despite not being supposed to.
+   
+   Before worrying about that, or any other issues, let's get a baseline result.
+   
+   Use lm() to get the effect of being assigned_coupon on your next_purchase. Save the result as model1.
+   
+  CorrectAnswer: model1 <- lm(next_purchase ~ assigned_coupon, data = df)
+  AnswerTests: ifelse(exists('model1'),cor(predict(model1),predict(lm(next_purchase ~ assigned_coupon, data = df)))>.99, FALSE)
+  Hint: Regress next_purchase on assigned_coupon and save the result as model1.
+
+- Class: cmd_question
+  Output: Use export_summs() to look at the result.
+  CorrectAnswer: export_summs(model1)
+  AnswerTests: omnitest(correctExpr='export_summs(model1)')
+  Hint: Send model1 to export_summs.
+
+- Class: mult_question
+  Output: Given that we used the *assigned* treatment but not necessarily whether they *received* treatment in the model we just ran, what kind of result did we get?
+  AnswerChoices: Intent-to-treat; Attrition-adjusted; Two stage least squares; Powered
+  CorrectAnswer: Intent-to-treat
+  AnswerTests: omnitest(correctVal='Intent-to-treat')
+  Hint: The analysis we ran is based on the treatment we *meant* to give to people
+
+- Class: cmd_question
+  Output: |-
+   Now let's check for any problems in the experiment.
+   
+   First, we'll look for any issues with *attrition* - people not ever coming back to the store, or us losing track of them, so we can't see how their next purchase was affected.
+   
+   Use mutate() to create a new variable called attrit equal to is.na(next_purchase), i.e. it's TRUE for anyone we never see another purchase for (so it's missing, or NA).
+   
+   Overwrite df with the version containing the new variable.
+  CorrectAnswer: df <- df %>% mutate(attrit = is.na(next_purchase))
+  AnswerTests: cor(df$attrit, is.na(df$next_purchase)) > .99
+  Hint: |- 
+   Use mutate in the standard way:
+   
+   df <- df %>% mutate(newvar = functionofoldvar)
+   
+   using is.na(next_purchase)
+
+- Class: cmd_question
+  Output: Now, check if anyone left the sample by checking how many times attrit is TRUE. You can do this by sum()ming up all the value of df$attrit
+  CorrectAnswer: df %>% pull(attrit) %>% sum()
+  AnswerTests: omnitest(correctVal = df %>% pull(attrit) %>% sum())
+  Hint: |-
+   df %>% pull(attrit) takes out the attrit variable
+   
+   which we can then send to sum() to count the number of attriting observations.
+
+- Class: cmd_question
+  Output: |- 
+   So we have some attrition.
+   
+   We might still be okay if that attrition is random. To check this, see if any of our other variables are related to attrition. From vtable:
+   
+   sumtable(df, group = "attrit", group.test = TRUE)
+   
+   will compare the values of each variable across values of attrit. 
+  CorrectAnswer: sumtable(df, group = "attrit", group.test = TRUE)
+  AnswerTests: omnitest(correctExpr='sumtable(df, group = "attrit", group.test = TRUE)')
+  Hint: Copy/pate the sumtable code.
+
+- Class: cmd_question
+  Output: |-
+   The rightmost "Test" column does a significance test of whether attrition is related to the variable on that row. 
+   
+   Attrition seems to be significantly related to the amount of the last_purchase as well as to treatment (both assignment and actually receiving treatment). People not sent the coupon were way more likely to attrit, as were people with lower last_purchases.
+   
+   (Make sure you can see where we got those conclusions from the table)
+   
+   Let's perform a regression of attrit on sent_coupon, last_purchase, and their interaction to see what's going on. Save the result as attritmodel
+  CorrectAnswer: attritmodel <- lm(attrit ~ last_purchase*sent_coupon, data = df)
+  AnswerTests: ifelse(exists('attritmodel'),cor(predict(attritmodel),predict(lm(attrit ~ last_purchase*sent_coupon, data = df)))>.99, FALSE)
+  Hint: You can regress Y on X, Z, and X*Z with Y~X*Z.
+
+- Class: cmd_question
+  Output: Look at the results with export_summs() with the digits = 3 option.
+  CorrectAnswer: export_summs(attritmodel, digits = 3)
+  AnswerTests: omnitest(correctExpr='export_summs(attritmodel, digits = 3)')
+  Hint: Just send attritmodel to export_summs(digits = 3) 
+
+
+- Class: mult_question
+  Output: How can we interpret these results?
+  AnswerChoices: Among those sent the coupon, those with lower last purchases were more likely to attrit; Among those not sent the coupon, those with lower last purchases were more likely to attrit; Among those with high last purchases, being sent the coupon increases the chances of attrition
+  CorrectAnswer: Among those sent the coupon, those with lower last purchases were more likely to attrit
+  AnswerTests: omnitest(correctVal='Among those sent the coupon, those with lower last purchases were more likely to attrit')
+  Hint: Remember, sent_coupon is binary, so the coefficient on the interaction term is the additional effect of last_purchase among those sent coupons than among those not sent coupons.
+
+- Class: cmd_question
+  Output: |-
+   The most appropriate step here would likely be to use a selection model (like the Heckman model in the sampleSelection package).
+   
+   But this is beyond the scope of the class. Instead, we're going to tak the fairly blunt move of dropping low-last-purchase observations from the untreated group until attrition rates are equal in treated and untreated groups.
+   
+   As per the sumtable, there are 23 people sent the coupon who attrited, and 130 not sent the coupon who attrited, so we'll drop 107 untreated people.
+   
+   Let's first arrange() the data so that the people NOT sent the coupon are at the top, and it's sorted by last_purchase: arrange(sent_coupon, last_purchase)
+   
+   Then, use slice(-(1:107)) to drop the first 107 observations in there, since those will be the not-treated people with the lowest last_purchases.
+   
+   Save the whole thing as df_trim
+   
+   (and I emphasize here, this is likely to be a big overcorrection, since last_purchase is associated with attrition but it's not the same as "every bottom observation drops out". This is more to give a sense of working with these methods in R.)
+
+  CorrectAnswer: df_trim <- df %>% arrange(sent_coupon, last_purchase) %>% slice(-(1:107))
+  AnswerTests: ifelse(exists('df_trim'),cor(df_trim$last_purchase, df %>% arrange(sent_coupon, last_purchase) %>% slice(-(1:107)) %>% pull(last_purchase)) > .99, FALSE)
+  Hint: Take df, pass that with a pipe (%>%) to arrange(sent_coupon, last_purchase), and send that with a pipe to slice(-(1:107))
+
+- Class: cmd_question
+  Output: |-
+   Becuase our trimming was likely to be an overreaction, let's ignore that and go back to working with df (and keep the "trimming more carefully than that is a good idea" thought in our heads for next time)
+   
+   Now let's check for balance. Use sumtable with df again, but this time use sent_coupon (i.e. received treatment) as the group variable.
+  CorrectAnswer: sumtable(df, group = "sent_coupon", group.test = TRUE)
+  AnswerTests: omnitest(correctExpr='sumtable(df, group = "sent_coupon", group.test = TRUE)')
+  Hint: |- 
+   Last time the code was
+   
+   sumtable(df, group = 'attrit', group.test = TRUE)
+   
+   Just switch out attrit!
+
+- Class: mult_question
+  Output: |-
+   We have significant differences for a few variables:
+   
+   attrit, which we already worked through the issues on
+   
+   gender 
+   
+   assigned_coupon
+   
+   next_purchase
+   
+   Gender seems like an issue - women were more likely than men to be sent coupons.
+   
+   Do we need to worry about the other two?
+  AnswerChoices: No, because treatment SHOULD be related to being assigned treatment, and what your next purchase is; No, becuase you'll see some differences by chance anyway; Yes, because there shouldn't be any differences; Yes, for next_purchase, although assigned_coupon is fine.
+  CorrectAnswer: No, because treatment SHOULD be related to being assigned treatment, and what your next purchase is
+  AnswerTests: omnitest(correctVal='No, because treatment SHOULD be related to being assigned treatment, and what your next purchase is')
+  Hint: Random experiments are about closing back doors - if something SHOULD be related to treatment, that's fine.
+
+- Class: cmd_question
+  Output: |-
+   Run another intent-to-treat estimate of the experiment's results. 
+   
+   This time, though:
+   
+   1. Use robust standard errors by using lm_robust(), since we might expect variance of next_purchase to differ by gender or coupon assignment.
+   
+   2. Add gender as a control, since we know there's a balance issue there.
+   
+   Save the result as model2.
+  CorrectAnswer: model2 <- lm_robust(next_purchase ~ assigned_coupon + gender, data = df)
+  AnswerTests: ifelse(exists('model2'),cor(model2$fitted.values, lm_robust(next_purchase ~ assigned_coupon + gender, data = df)$fitted.values)> .99, FALSE)
+  Hint: Regress next_purchase on assigned_coupon and gender, using lm_robust.
+
+- Class: cmd_question
+  Output: Use export_summs() to look at model1 and model2
+  CorrectAnswer: export_summs(model1,model2)
+  AnswerTests: omnitest(correctExpr='export_summs(model1,model2)')
+  Hint: Send both model1 and model2 to export_summs()
+
+- Class: cmd_question
+  Output: |-
+   Now we can finally deal with our compliance problem - not everybody actually got coupons the way they were assigned!
+   
+   Use table(df$assigned_coupon, df$sent_coupon) to see the extent of the problem.
+  CorrectAnswer: table(df$assigned_coupon, df$sent_coupon)
+  AnswerTests: omnitest(correctExpr='table(df$assigned_coupon, df$sent_coupon)')
+  Hint: Copy/paste table(df$assigned_coupon, df$sent_coupon)
+
+- Class: cmd_question
+  Output: |-
+   First, let's see what kinds of problems we might get by using actual treatment when we know compliance isn't right.
+   
+   Repeat the model you had for model2 but use sent_coupon instead of assigned_coupon. Save the result as model3.
+  CorrectAnswer: model3 <- lm_robust(next_purchase ~ sent_coupon + gender, data = df)
+  AnswerTests: ifelse(exists('model3'),cor(model3$fitted.values, lm_robust(next_purchase ~ sent_coupon + gender, data = df)$fitted.values)> .99, FALSE)
+  Hint: Regress next_purchase on sent_coupon and gender using lm_robust.
+
+- Class: cmd_question
+  Output: |-
+   Now, use two-stage least squares to adjust the effect of sent_coupon using how effective assigned_coupon was at actually increasing received-coupon rates.
+   
+   We can do this with iv_robust instead of lm_robust.
+   
+   The syntax for iv_robust is the same as lm_robust, except that after we specify our regression equation (Y~X+W), we add a bar |  and then give our list of "instruments" which includes both our treatment assignment AND any control variables, e.g. Y ~ X + W | Z + W if X is received-treatment and Z is assigned-treatment.
+   
+   Perform this regression and save it as model4.
+  CorrectAnswer: model4 <- iv_robust(next_purchase ~ sent_coupon + gender | assigned_coupon + gender, data = df)
+  AnswerTests: ifelse(exists('model4'),cor(model4$fitted.values, iv_robust(next_purchase ~ sent_coupon + gender | assigned_coupon + gender, data = df)$fitted.values)> .99, FALSE)
+  Hint: Use next_purchase ~ sent_coupon + gender | assigned_coupon + gender as the formula inside of iv_robust.
+
+- Class: cmd_question
+  Output: |-
+   Use export_summs to look at models 1, 2, 3, and 4 and see what our various calculations got us (keeping in mind we never implemented an attrition fix).
+   
+   For the record, the "true" effect of treatment was 20.
+  CorrectAnswer: export_summs(model1,model2,model3,model4)
+  AnswerTests: omnitest(correctExpr='export_summs(model1,model2,model3,model4)')
+  Hint: Just pass model1, model2, model3, and model4 to export_summs
