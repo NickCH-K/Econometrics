@@ -191,7 +191,7 @@
   Output: |-
    Now let's check for any problems in the experiment.
    
-   First, we'll look for any issues with *attrition* - people not ever coming back to the store, or us losing track of them, so we can't see how their next purchase was affected.
+   First, we'll look for any issues with *attrition* - there happen to be some people in the database who got dropped from the database entirely after the experiment was started, or they moved addresses so we can't track them, so we can't tell what their next purchase is. They've left the sample entirely! We call this attrition.
    
    Use mutate() to create a new variable called attrit equal to is.na(next_purchase), i.e. it's TRUE for anyone we never see another purchase for (so it's missing, or NA).
    

@@ -191,7 +191,7 @@
    
    Create mathpnl_dm with de-meaned math4, expp, and lunch, called math4_dm, expp_dm, and lunch_dm, respectively.
   CorrectAnswer: mathpnl_dm <- mathpnl %>% group_by(distid) %>% mutate(math4_dm = math4 - mean(math4), expp_dm = expp - mean(expp), lunch_dm = lunch - mean(lunch))
-  AnswerTests: ifelse(exists('mathpnl_dm'),cor(mathpnl_dm[['math4_dm']],mathpnl %>% group_by(distid) %>% mutate(x = math4 - mean(math4)) %>% pull(x)) > .99 & cor(mathpnl_dm[['expp_dm']], mathpnl %>% group_by(distid) %>% mutate(x = expp - mean(expp)) %>% pull(x)) > .99 &  cor(mathpnl_dm[['lunch_dm']], mathpnl %>% group_by(distid) %>% mutate(x = lunch - mean(lunch)) %>% pull(x)) > .99, FALSE); expr_creates_var('mathpnl')
+  AnswerTests: ifelse(exists('mathpnl_dm'),cor(mathpnl_dm[['math4_dm']],mathpnl %>% group_by(distid) %>% mutate(x = math4 - mean(math4)) %>% pull(x)) > .99 & cor(mathpnl_dm[['expp_dm']], mathpnl %>% group_by(distid) %>% mutate(x = expp - mean(expp)) %>% pull(x)) > .99 &  cor(mathpnl_dm[['lunch_dm']], mathpnl %>% group_by(distid) %>% mutate(x = lunch - mean(lunch)) %>% pull(x)) > .99, FALSE)
   Hint: Take the provided code and replace x with math4, y with expp, and make a similar line for lunch.
 
 - Class: text
@@ -267,6 +267,20 @@
   CorrectAnswer: fe_robust <- lm_robust(math4 ~ expp + lunch, fixed_effects = ~distid, data = mathpnl)
   AnswerTests: ifelse(exists('fe_robust'),cor(fe_robust$fitted.values,lm_robust(math4 ~ expp + lunch, fixed_effects = ~distid, data = mathpnl)$fitted.values) > .99, FALSE); expr_uses_func('lm_robust')
   Hint: lm_robust() takes a regular formula and data= argument, just like lm(). Now just add fixed_effects = ~distid
+
+- Class: text
+  Output: |-
+   As an aside, it is common to expect that the model's error terms might be correlated with each other within individual. This violates an OLS assumption, and would make your standard errors wrong!
+   
+   We can adjust for this using "cluster-robust standard errors", much like with heteroskedasticity-robust standard errors. To do this, we only need to add
+   
+   clusters = identifier
+   
+   as an option. So a cluster-robust version of our analysis might look like:
+   
+   fe_cluster <- lm_robust(math4 ~ expp + lunch, fixed_effects = ~distid, clusters = distid, data = mathpnl)
+   
+   Something to keep in mind!
 
 - Class: cmd_question
   Output: |-

@@ -38,3 +38,9 @@ d <- ggplot(pnlsmall,
 
 e<- (a + b)/(c + d)
 print(e)
+
+rm(a)
+rm(b)
+rm(c)
+rm(d)
+rm(e)

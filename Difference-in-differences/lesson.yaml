@@ -81,11 +81,11 @@
     
     For example, I could pull information on the search volume of "baseball" and "football" for this year using the command: 
     
-    gtrends(c("baseball", "football"), time = "2020-01-01 2020-07-11", geo = "US")
+    gtrends(c("baseball", "football"), time = "2020-01-01 2020-08-01", geo = "US")
 
     Modify this command to search for "sourdough bread" and "cereal". Save the resulting list of objects as trends
-  CorrectAnswer: trends <- gtrends(c("sourdough bread", "cereal"), time = "2020-01-01 2020-07-11", geo = "US")
-  AnswerTests: omnitest(correctExpr='trends <- gtrends(c("sourdough bread", "cereal"), time = "2020-01-01 2020-07-11", geo = "US")')
+  CorrectAnswer: trends <- gtrends(c("sourdough bread", "cereal"), time = "2020-01-01 2020-08-01", geo = "US")
+  AnswerTests: any_of_exprs('trends <- gtrends(c("sourdough bread", "cereal"), time = "2020-01-01 2020-08-01", geo = "US")', 'trends <- gtrends(c("cereal", "sourdough bread"), time = "2020-01-01 2020-08-01", geo = "US")')
   Hint: Remember to use 'trends <-' to save the list
   
 
@@ -95,10 +95,10 @@
     
     Copy this code into the console to create a tibble that grabs the correct dataframe and formats dates correctly 
     
-    trends_time <- as_tibble(trends$interest_over_time)  %>% mutate(date = ymd(date))
+    trends_time <- trends$interest_over_time %>% as_tibble() %>% mutate(date = ymd(date))
 
-  CorrectAnswer: trends_time <- as_tibble(trends$interest_over_time)  %>% mutate(date = ymd(date))
-  AnswerTests: omnitest(correctExpr='trends_time <- as_tibble(trends$interest_over_time)  %>% mutate(date = ymd(date))')
+  CorrectAnswer: trends_time <- trends$interest_over_time %>% as_tibble() %>% mutate(date = ymd(date))
+  AnswerTests: omnitest(correctExpr='trends_time <- trends$interest_over_time %>% as_tibble() %>% mutate(date = ymd(date))')
   Hint: Copy the indicated syntax!
   
 - Class: cmd_question
@@ -115,7 +115,7 @@
   Output: |- 
     A simple difference-in-differences model takes the form:
     
-    outcome = treated + post_treatment + treated*post_treatment
+    outcome = treated + post_treatment + treated:post_treatment, where : indicates an interaction between two variables.
     
     To estimate this model, first we need to create these variables.
     
@@ -132,7 +132,7 @@
   
     Note: you should use as.Date("2020-03-18") so that R knows you are working with a date value.
   CorrectAnswer: trends_time <- trends_time %>% mutate(post_treatment = date >= as.Date("2020-03-18"))
-  AnswerTests: identical(trends_time[['post_treatment']], trends_time[['date']] >= as.Date("2020-03-18"))
+  AnswerTests: cor(trends_time[['post_treatment']], trends_time[['date']] >= as.Date("2020-03-18")) > .99
   Hint: Your mutate code should read mutate(post_treatment = date >= as.Date("2020-03-18"))
 
 
@@ -142,8 +142,8 @@
     
     Save the resulting estimates as bread_diff_in_diff
   CorrectAnswer: bread_diff_in_diff <- lm(hits ~ treated * post_treatment, data = trends_time)  
-  AnswerTests: ifelse(exists('bread_diff_in_diff'),identical(predict(bread_diff_in_diff),predict(lm(hits ~ treated * post_treatment, data = trends_time))),FALSE)
-  Hint: Remember the 'outcome = treated + post_treatment + treated*post_treatment' formula
+  AnswerTests: ifelse(exists('bread_diff_in_diff'), cor(predict(bread_diff_in_diff), predict(lm(hits ~ treated * post_treatment, data = trends_time))) > .99, FALSE)
+  Hint: Remember the 'outcome = treated + post_treatment + treated:post_treatment' formula
 
 - Class: cmd_question
   Output: |- 
@@ -159,10 +159,10 @@
    
    Visualize the effect using this command and look at the Plots display in RStudio
    
-   ggplot(trends_time, aes(x=date, y=hits, group = keyword, color = keyword)) + geom_line() + theme_minimal()  + geom_vline(xintercept = as.Date("2020-03-18"))
+   ggplot(trends_time, aes(x=date, y=hits, color = keyword)) + geom_line() + geom_vline(xintercept = as.Date("2020-03-18"))
 
-  CorrectAnswer: ggplot(trends_time, aes(x=date, y=hits, group = keyword, color = keyword)) + geom_line() + theme_minimal()  + geom_vline(xintercept = as.Date("2020-03-18"))
-  AnswerTests: omnitest(correctExpr='ggplot(trends_time, aes(x=date, y=hits, group = keyword, color = keyword)) + geom_line() + theme_minimal()  + geom_vline(xintercept = as.Date("2020-03-18"))')
+  CorrectAnswer: ggplot(trends_time, aes(x=date, y=hits, color = keyword)) + geom_line() + geom_vline(xintercept = as.Date("2020-03-18"))
+  AnswerTests: omnitest(correctExpr='ggplot(trends_time, aes(x=date, y=hits, color = keyword)) + geom_line() + geom_vline(xintercept = as.Date("2020-03-18"))')
   Hint: Just copy the code!
 
 - Class: text
@@ -187,6 +187,7 @@
   Output: |- 
     Type eitc<-read_dta("https://github.com/CausalReinforcer/Stata/raw/master/eitc.dta") to load data on a sample of women and their labor supply decisions
 
+    Note that read_dta is from the haven package.
   CorrectAnswer: eitc<-read_dta("https://github.com/CausalReinforcer/Stata/raw/master/eitc.dta")
   AnswerTests: omnitest(correctExpr='eitc<-read_dta("https://github.com/CausalReinforcer/Stata/raw/master/eitc.dta")')
   Hint: Just type the code in!
@@ -201,22 +202,20 @@
   
 - Class: cmd_question
   Output: |- 
-    Create a logical dummy variable named post_expansion equal to 1 for years equal to or greater than the year the EITC expanded (1994)
+    Create a logical dummy variable in the eitc dataframe named post_expansion equal to 1 for years equal to or greater than the year the EITC expanded (1994)
 
-    Add the dummy variable to the eitc tibble in the same line of code
   CorrectAnswer: eitc <- eitc %>% mutate(post_expansion = year >= 1994)
-  AnswerTests: identical(eitc[['post_expansion']], eitc[['year']] >= 1994)
+  AnswerTests: cor(eitc[['post_expansion']], eitc[['year']] >= 1994) > .99
   Hint: Look back at the syntax you used earlier in the lesson!
   
 - Class: cmd_question
   Output: |- 
-    Create a logical dummy variable named treated_women equal to 1 for women with any children
+    Create a logical dummy variable in the eitc dataframe named treated_women equal to 1 for women with any children
 
-    Since this expansion did not affected childless women, women with children are an excellent treatment group.
+    Since this expansion did not affect childless women, women with children are an excellent treatment group.
     
-    Add the dummy variable to the EITC tibble in the same line of code
   CorrectAnswer: eitc <- eitc %>% mutate(treated_women = children >= 1)
-  AnswerTests: identical(eitc[['treated_women']], eitc[['children']] >= 1)
+  AnswerTests: cor(eitc[['treated_women']], eitc[['children']] >= 1) > .99
   Hint: Look back at the syntax you used earlier in the lesson! 
   
 - Class: mult_question
@@ -240,10 +239,12 @@
 
 - Class: cmd_question
   Output: |- 
-    Using these means, calculate the difference-in-difference estimated increase in working probability for women with children after the 1994 EITC expansion  
+    Using these means, calculate by hand the difference-in-difference estimated increase in working probability for women with children after the 1994 EITC expansion  
+  
+    (You can copy and paste the relevant means into the R console and use R as a calculator)
   CorrectAnswer: (0.491-0.446) - (0.573-0.575)
   AnswerTests: omnitest(correctVal=(0.491-0.446) - (0.573-0.575))
-  Hint: Compare the increase in labor supply for treated women to the change for women without children!
+  Hint: Compare the increase in labor supply for treated women to the change for women without children! 
 
 - Class: cmd_question
   Output: |- 
@@ -251,7 +252,7 @@
     
     Save the resulting estimates as eitc_diff_in_diff
   CorrectAnswer: eitc_diff_in_diff <- lm(work ~ treated_women * post_expansion, data = eitc)  
-  AnswerTests: ifelse(exists('eitc_diff_in_diff'),identical(predict(eitc_diff_in_diff),predict(lm(work ~ treated_women * post_expansion, data = eitc))),FALSE)
+  AnswerTests: ifelse(exists('eitc_diff_in_diff'), cor(predict(eitc_diff_in_diff), predict(lm(work ~ treated_women * post_expansion, data = eitc))) > .99, FALSE)
   Hint: Remember the 'outcome = treated + post_treatment + treated*post_treatment' formula
 
 - Class: cmd_question
@@ -264,10 +265,10 @@
 
 - Class: mult_question
   Output: |- 
-   What is the interpretation of the coefficient on treated_women:post_expansion (assuming identificaiton assumptions hold) 
-  AnswerChoices: After the expansion, women with kids worked 0.5 hours more; After the expansion, women with kids worked more than women without kids; After the expansion, women with kids were 5 percent more likely to work; After the expansion, women with kids were 5 percentage points more likely to work
-  CorrectAnswer: After the expansion, women with kids were 5 percentage points more likely to work
-  AnswerTests: omnitest(correctVal='After the expansion, women with kids were 5 percentage points more likely to work')
+   What is the interpretation of the coefficient on treated_women:post_expansion
+  AnswerChoices: After the expansion, women with kids worked 0.5 hours more relative to those without kids; After the expansion, women with kids worked more than women without kids; After the expansion, women with kids were 5 percent more likely to work relative to those without kids; After the expansion, women with kids were 5 percentage points more likely to work relative to those without kids
+  CorrectAnswer: After the expansion, women with kids were 5 percentage points more likely to work relative to those without kids
+  AnswerTests: omnitest(correctVal='After the expansion, women with kids were 5 percentage points more likely to work relative to those without kids')
   Hint: Be careful of the difference between percent and percentage points!
 
 - Class: cmd_question
@@ -276,7 +277,7 @@
       
       Using your mean for treated women in the pre-period (0.446) and your DiD regression estimate of 0.05, what is the **percent** increase in labor supply attributable to the policy for women with children? 
       
-      Keep everything in decimal form and calculate your answer in the console 
+      Keep everything in decimal form and calculate your answer by hand in the console 
   CorrectAnswer: 0.05/0.446
   AnswerTests: omnitest(correctVal=(0.05/0.446))
   Hint: Make sure to use the values I listed in the question to calculate your answer. Keep everything in decimal form (e.g., 0.10 is 10 percent)
