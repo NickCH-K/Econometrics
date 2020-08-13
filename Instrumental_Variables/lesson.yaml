@@ -1,0 +1,273 @@
+- Class: meta
+  Course: Econometrics
+  Lesson: Instrumental Variables
+  Author: Nick Huntington-Klein
+  Type: Standard
+  Organization: Seattle University
+  Version: 2.4.5
+
+
+- Class: text
+  Output: |-
+   This lesson will focus on instrumental variables and how to perform IV in R.
+   
+   It will require the use of the packages **scales**, **tidyverse**, **jtools**, **estimatr**, and **AER**.
+   
+   If you do not have those installed, you can exit out of here (bye() works), install them with
+   
+   install.packages(c('scales','tidyverse','jtools','estimatr','AER'), dependencies = TRUE)
+   
+   and return here with swirl()
+
+- Class: cmd_question
+  Output: |-
+   Now we will load all of the libraries we need. You can copy the code below to do so, or just type skip() and it will do it for you.
+   
+   library(tidyverse)
+  CorrectAnswer: library(tidyverse)
+  AnswerTests: omnitest(correctExpr='library(tidyverse)')
+  Hint: Put in library(tidyverse)
+
+- Class: cmd_question
+  Output: |-
+   Now library(jtools)
+  CorrectAnswer: library(jtools)
+  AnswerTests: omnitest(correctExpr='library(jtools)')
+  Hint: Put in library(jtools)
+
+- Class: cmd_question
+  Output: |-
+   Now library(estimatr)
+  CorrectAnswer: library(estimatr)
+  AnswerTests: omnitest(correctExpr='library(estimatr)')
+  Hint: Put in library(estimatr)
+
+- Class: cmd_question
+  Output: |-
+   Now library(AER)
+  CorrectAnswer: library(AER)
+  AnswerTests: omnitest(correctExpr='library(AER)')
+  Hint: Put in library(AER)
+
+- Class: cmd_question
+  Output: |-
+   Now library(scales)
+  CorrectAnswer: library(scales)
+  AnswerTests: omnitest(correctExpr='library(scales)')
+  Hint: Put in library(scales)
+
+- Class: cmd_question
+  Output: |-
+   Next we will load our data.
+   
+   We will be using the data set CigarettesSW from the AER package.
+   
+   This data set allows us to look at whether raising the price of cigarettes reduces smoking (and by how much).
+   
+   Use data() to load CigarettesSW
+  CorrectAnswer: data(CigarettesSW) 
+  AnswerTests: any_of_exprs('data(CigarettesSW)','data(CigarettesSW, package = "AER")','data("CigarettesSW")', 'data("CigarettesSW",package="AER")')
+  Hint: Since we've already loaded AER, we can just use data(CigarettesSW)
+
+
+- Class: cmd_question
+  Output: Click on CigarettesSW to look at it.
+  CorrectAnswer: View(CigarettesSW)
+  AnswerTests: omnitest(correctExpr='View(CigarettesSW)')
+  Hint: Click on CigarettesSW in the Environment tab.
+
+- Class: cmd_question
+  Output: |-
+   The data set has data on each state in both 1985 and 1995. To simplify things, let's look only at 1995.
+   
+   Use filter to keep only the observations for which year is 1995. Overwrite the original CigarettesSW with this.
+  CorrectAnswer: CigarettesSW <- CigarettesSW %>% filter(year == 1995)
+  AnswerTests: nrow(CigarettesSW) == 48 & sum(CigarettesSW$year == 1995) == 48; expr_creates_var('CigarettesSW'); expr_uses_func('filter')
+  Hint: Use Pass CigarettesSW to filter() where you will specify that year must be == to 1995. If you already overwrote CigarettesSW with something wrong, you might need to reload it with data(CigarettesSW) before doing this step.
+
+
+- Class: cmd_question
+  Output: |- 
+   We are interested in the effect of cigarette prices on the number of cigarette packs purchased.
+   
+   First, we need to adjust prices for inflation.
+   
+   Use mutate to create a new variable in CigarettesSW called rprice that's equal to price/cpi.
+  CorrectAnswer: CigarettesSW <- CigarettesSW %>% mutate(rprice = price/cpi)
+  AnswerTests: cor(CigarettesSW[['rprice']], CigarettesSW[['price']]/CigarettesSW['cpi']) > .99; expr_uses_func('mutate')
+  Hint: You know how to mutate a new variable! data %>% mutate(newvar = oldstuff)
+
+- Class: cmd_question
+  Output: |-
+   Now let's get a raw association between packs and prices
+   
+   Regress the logarithm (log()) of packs on the logarithm of inflation-adjusted prices and store the result as ols.
+  CorrectAnswer: ols <- lm(log(packs) ~ log(rprice), data = CigarettesSW)
+  AnswerTests: ifelse(exists('ols'), cor(predict(ols), predict(lm(log(packs) ~ log(rprice), data = CigarettesSW))) > .99, FALSE)
+  Hint: Just run a regression as normal of log(packs) on log(rprice).
+
+- Class: cmd_question
+  Output: Look at the result using export_summs()
+  CorrectAnswer: export_summs(ols)
+  AnswerTests: any_of_exprs('export_summs(ols)','ols %>% export_summs()')
+  Hint: Send ols to export_summs()
+
+- Class: mult_question
+  Output: How can we interpret the -1.21 coefficient?
+  AnswerChoices: A 1% increase in rprice is associated with a 1.21% decrease in packs; A 1% increase in rprice causes packs sold to drop by 1.21%; A one-unit increase in rprice reduces packs sold by 1.21 on average; A one-unit increase in rprice is associated with a 1.21-unit drop in packs
+  CorrectAnswer: A 1% increase in rprice is associated with a 1.21% decrease in packs
+  AnswerTests: omnitest(correctVal='A 1% increase in rprice is associated with a 1.21% decrease in packs')
+  Hint: Don't forget the variables are both logged! Also, there might be some endogeneity problems here.
+
+- Class: mult_question
+  Output: Why might we be skeptical of thinking the result in ols represents a causal effect?
+  AnswerChoices: Because the price of cigarettes is responsive to how many packs people want to buy; Unexpected shocks to price are in the error term; Prices are in effect randomly assigned
+  CorrectAnswer: Because the price of cigarettes is responsive to how many packs people want to buy
+  AnswerTests: omnitest(correctVal='Because the price of cigarettes is responsive to how many packs people want to buy')
+  Hint: Endogeneity arises from things that might affect both treatment and outcome
+
+- Class: cmd_question
+  Output: |-
+   To identify the effect of log(rprice) on log(packs), we will be using taxes as an instrument.
+   
+   The idea is that sales taxes on cigarettes should change the price of cigarettes, but not in a way that is driven by the demand for packs itself.
+   
+   The data contains a "sales and excise taxes" variable taxs, and an "excise taxes" variable tax.
+   
+   Use mutate to create a new variable called taxdiff, equal to (taxs-tax)/cpi.
+  CorrectAnswer: CigarettesSW <- CigarettesSW %>% mutate(taxdiff = (taxs-tax)/cpi)
+  AnswerTests: cor(CigarettesSW[['taxdiff']], (CigarettesSW[['taxs']]-CigarettesSW[['tax']])/CigarettesSW[['cpi']]) > .99; expr_uses_func('mutate')
+  Hint: Mutate a new variables taxdiff = (taxs - tax)/cpi and overwrite the original CigarettesSW
+
+
+- Class: cmd_question
+  Output: |-
+   We will be using the estimatr command iv_robust to estimate our IV models.
+   
+   Use help(iv_robust) to look at how to use iv_robust. Pay particular attention to how the IV formula is set up (perhaps look at those examples at the bottom), where we use | to separate the second stage from the first stage.
+   
+   outcome ~ endogenous_variable + control | instrument + control
+  CorrectAnswer: help(iv_robust)
+  AnswerTests: omnitest(correctExpr='help(iv_robust)')
+  Hint: Just type help(iv_robust)
+
+- Class: cmd_question
+  Output: |-
+   Use iv_robust to regress log(packs) on log(rprice), using taxdiff as an instrument. No controls included.
+   
+   Save the result as iv1.
+  CorrectAnswer: iv1 <- iv_robust(log(packs) ~ log(rprice) | taxdiff, data = CigarettesSW)
+  AnswerTests: ifelse(exists('iv1'),cor(iv1$fitted.values, iv_robust(log(packs) ~ log(rprice) | taxdiff, data = CigarettesSW)$fitted.values) > .99, FALSE)
+  Hint: Use iv_robust just like you use lm or lm_robust, but with | taxdiff added on to the end of the formula.
+
+- Class: cmd_question
+  Output: Use export_summs() to look at ols and iv1 together.
+  CorrectAnswer: export_summs(ols, iv1)
+  AnswerTests: omnitest(correctExpr='export_summs(ols, iv1)')
+  Hint: Send both ols and iv1, in that order, to export_summs()
+
+- Class: mult_question
+  Output: Assuming that our instrument is relevant and valid, how can we best interpret the -1.08 coefficient?
+  AnswerChoices: A 1% increase in rprice driven by tax increases will decrease packs sold by 1.08%; On average, a 1% increase in rprice will decrease packs sold by 1.08%
+  CorrectAnswer: A 1% increase in rprice driven by tax increases will decrease packs sold by 1.08%
+  AnswerTests: omnitest(correctVal='A 1% increase in rprice driven by tax increases will decrease packs sold by 1.08%')
+  Hint: IV isolates only the part of the treatment variation that is driven by the instrument
+
+- Class: mult_question
+  Output: Even if we assume the instrument is relevant and valid, why might we still be concerned that this estimate is biased?
+  AnswerChoices: IV is biased in small samples, and this sample is very small; The appropriate model is probably not linear; The instrument may be correlated with some omitted variable; The endogenous variable may be correlated with some omitted variable
+  CorrectAnswer: IV is biased in small samples, and this sample is very small
+  AnswerTests: omnitest(correctVal='IV is biased in small samples, and this sample is very small')
+  Hint: Even if an instrument is valid in the population, in a given sample there might be an incidental correlation, driving bias.
+
+
+- Class: cmd_question
+  Output: Run the "first stage" model using lm_robust(), showing the impact of the instrument on the endogenous variable. Send it straight to summary() rather than saving it or sending it to export_summs().
+  CorrectAnswer: CigarettesSW %>% lm_robust(log(rprice) ~ taxdiff, data = .) %>% summary()
+  AnswerTests: omnitest(correctVal='CigarettesSW %>% lm_robust(log(rprice) ~ taxdiff, data = .) %>% summary()')
+  Hint: Use lm_robust to regress log(rprice) on taxdiff, and send the result to summary()
+
+- Class: mult_question
+  Output: Does this result raise any clear concerns about taxdiff being a weak instrument?
+  AnswerChoices: No; Yes; This provides no information about being a weak instrument
+  CorrectAnswer: No
+  AnswerTests: omnitest(correctVal='No')
+  Hint: A common rule of thumb is that a t-statistic on the instrument of less than 3 raises weak instrument concerns (although using a rule of thumb in general for this is not ideal).
+
+- Class: mult_question
+  Output: |-
+   So far we've just assumed that the instrument is exogenous.
+   
+   How much thought and modeling and consideration should we have put into determining whether we actually think the instrument is exogenous/valid?
+  AnswerChoices: A lot; A whole lot; Just a heck of a lot; Way more than we did; An astounding amount
+  CorrectAnswer: Just a heck of a lot
+  AnswerTests: TRUE
+  Hint: Yes.
+
+- Class: cmd_question
+  Output: |-
+   Let's introduce a second instrument and see what that gets us.
+   
+   We'll be using the amount of overall excise taxes, the variable tax, as another instrument.
+   
+   Rerun your iv_robust model but also include tax as an instrument. Also set diagnostics = TRUE. Save the result as iv2.
+  CorrectAnswer: iv2 <- iv_robust(log(packs) ~ log(rprice) | taxdiff + tax, data = CigarettesSW, diagnostics = TRUE)
+  AnswerTests: ifelse(exists('iv2'),cor(iv2$fitted.values, iv_robust(log(packs) ~ log(rprice) | taxdiff + tax, data = CigarettesSW, diagnostics = TRUE)$fitted.values) > .99, FALSE); !is.null(iv2[['diagnostic_first_stage_fstatistic']])
+  Hint: Reuse your iv1 code, but add +tax after taxdiff and set diagnostics = TRUE.
+
+- Class: cmd_question
+  Output: Type iv2$ and let autocomplete help you find the first-stage F statistic stored in iv2 because you set diagnostics = TRUE.
+  CorrectAnswer: iv2$diagnostic_first_stage_fstatistic
+  AnswerTests: omnitest(correctVal='iv2$diagnostic_first_stage_fstatistic')
+  Hint: If you type iv2$ and start using the arrow keys, eventually you'll find an option that looks like "diagnostic f statistic". Hit enter on that! Then run the result.
+
+- Class: cmd_question
+  Output: |-
+   That's a little difficult to parse with all the e notation.
+   
+   Print the iv2$diagnostic_first_stage_fstatistic again, but this time wrap it in number(accuracy = .1) from the scales package. This will make it a bit easier to read.
+  CorrectAnswer: number(iv2$diagnostic_first_stage_fstatistic, accuracy = .1)
+  AnswerTests: any_of_exprs('number(iv2$diagnostic_first_stage_fstatistic, accuracy = .1)', 'iv2$diagnostic_first_stage_fstatistic %>% number(accuracy = .1)')
+  Hint: Just take the same answer from last time and make it the first argument of number() with the accuracy = .1 option set.
+
+- Class: mult_question
+  Output: Does this result raise any clear concerns about weak instrument problems?
+  AnswerChoices: No; Yes; This provides no information about being a weak instrument
+  CorrectAnswer: No
+  AnswerTests: omnitest(correctVal='No')
+  Hint: A common rule of thumb is that a first-stage F-statistic (which is what this diagnostic F-statistic is) of less than 10  raises weak instrument concerns (although using a rule of thumb in general for this is not ideal).
+
+- Class: cmd_question
+  Output: Type iv2$ and let autocomplete help you find the overidentification test statistic stored in iv2 because you set diagnostics = TRUE.
+  CorrectAnswer: iv2$diagnostic_overid_test
+  AnswerTests: omnitest(correctVal='iv2$diagnostic_overid_test')
+  Hint: If you type iv2$ and start using the arrow keys, eventually you'll find an option that looks like "diagnostic overid test". Hit enter on that! Then run the result.
+
+- Class: mult_question
+  Output: |-
+   An overidentification test is a test you can use when you have more IVs than you need. You test whether the second-stage effect you get would be different depending on which IV you use.
+   
+   If they're different, we can take that as some evidence that at least one of the instruments is endogenous.
+   
+   Does this test show that the two estimates are different?
+  AnswerChoices: No; Yes; No way to tell
+  CorrectAnswer: No
+  AnswerTests: omnitest(correctVal='No')
+  Hint: The "value" shows the size of the difference, and the p.value shows the p-value from a test that they're different, with a null that they are the same.
+
+- Class: mult_question
+  Output: |-
+   What is the best interpretation to take from the null result in the overidentification test?
+  AnswerChoices: If one of the instruments is valid, they both are; The second instrument is redundant; Both instruments are valid; Neither instrument is valid; The addition of the second instrument helps ease weak instrument problems.
+  CorrectAnswer: If one of the instruments is valid, they both are
+  AnswerTests: omnitest(correctVal='If one of the instruments is valid, they both are')
+  Hint: The test simply checks whether each instrument gives the same results. If we're pretty sure that at least one of them is valid, then the other one giving similar results is a good sign.
+
+- Class: cmd_question
+  Output: |-
+   Finally, use plot_coefs() to plot ols, iv1, and iv2. 
+   
+   Take note not just of how the coefficient changes, but also the confidence intervals do. IV is a lot less precise! Although predicting the endogenous variable better (as we do with the addition of the second instrument) helps a lot.
+  CorrectAnswer: plot_coefs(ols,iv1,iv2)
+  AnswerTests: omnitest(correctExpr='plot_coefs(ols,iv1,iv2)')
+  Hint: Send ols, iv1, and iv2 to plot_coefs().
