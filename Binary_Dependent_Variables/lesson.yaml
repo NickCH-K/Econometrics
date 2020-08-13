@@ -1,0 +1,359 @@
+- Class: meta
+  Course: Econometrics
+  Lesson: Binary Dependent Variables
+  Author: Nick Huntington-Klein
+  Type: Standard
+  Organization: Seattle University
+  Version: 2.4.5
+
+- Class: text
+  Output: |-
+   This lesson will go through the probit and logit regression methods, used when your dependent variable is binary (0/1, False/True, No/Yes, etc), as well as generalized linear models generally.
+   
+   For this lesson you will need the margins, lmtest, car, estimatr, tidyverse, vtable, and jtools packages.
+   
+   You can install these by exiting out of here (bye() works), installing these with install.packages(c('margins','lmtest','car','estimatr','tidyverse','vtable','jtools'), dependencies = TRUE), and coming back in with swirl().
+
+   Also, right now, using margins with export_summs requires the *development* version of the broom package. You can install this with:
+   
+   remotes::install_github('tidymodels/broom')
+   
+   (you may need to install the remotes package with install.packages('remotes') first)
+
+- Class: cmd_question
+  Output: |-
+   Now let's load all the packages! 
+   
+   Do library(tidyverse)
+  CorrectAnswer: library(tidyverse)
+  AnswerTests: omnitest(correctExpr='library(tidyverse)')
+  Hint: Copy in library(tidyverse)
+
+- Class: cmd_question
+  Output: |-
+   Now library(vtable)
+  CorrectAnswer: library(vtable)
+  AnswerTests: omnitest(correctExpr='library(vtable)')
+  Hint: Copy in library(vtable)
+ 
+- Class: cmd_question
+  Output: |-
+   Now library(jtools)
+  CorrectAnswer: library(jtools)
+  AnswerTests: omnitest(correctExpr='library(jtools)')
+  Hint: Copy in library(jtools)
+  
+- Class: cmd_question
+  Output: |-
+   Now library(estimatr)
+  CorrectAnswer: library(estimatr)
+  AnswerTests: omnitest(correctExpr='library(estimatr)')
+  Hint: Copy in library(estimatr)
+
+- Class: cmd_question
+  Output: |-
+   Now library(margins)
+  CorrectAnswer: library(margins)
+  AnswerTests: omnitest(correctExpr='library(margins)')
+  Hint: Copy in library(margins)
+
+- Class: cmd_question
+  Output: Now let's load in our data. Load in the TitanicSurvival data set, which comes from the carData package. Since we haven't actually loaded the carData package, we can load the data directly by adding a package='carData' option to our data() function. This data set tracks the demographics and surival of passengers aboard the Titanic ship disaster.
+  CorrectAnswer: data(TitanicSurvival, package = 'carData')
+  AnswerTests: omnitest(correctExpr='data(TitanicSurvival, package = "carData")')
+  Hint: Use TitanicSurvival in data()
+
+- Class: cmd_question
+  Output: Let's take a look at the data. First, use vtable() to look at the variables and variable types in the data. Include the lush = TRUE option.
+  CorrectAnswer: vtable(TitanicSurvival, lush = TRUE)
+  AnswerTests: any_of_exprs('vtable(TitanicSurvival, lush = TRUE)','vt(TitanicSurvival, lush = TRUE)','TitanicSurvival %>% vtable(lush = TRUE)','TitanicSurvival %>% vt(lush = TRUE)')
+  Hint: Send TitanicSurvival to vtable(lush = TRUE)
+
+- Class: text
+  Output: |-
+   Notice a few things here:
+   
+   1. Only one of the variables - age - is numeric, and it runs from .167 to 80
+   
+   2. The others are factor variables - categorical.
+   
+   3. Two of the factor variables are binary - survived and sex
+   
+   4. The factors are ordered ('no' then 'yes' and 'female' then 'male' and '1st' '2nd' and '3rd'). If we use an ordered factor in regression, it will omit the first category and use the others. So if we use survived as a dependent variable, it will have 'yes' = TRUE/1 since that comes second. Or if we use passengerClass as an independent variable, the '1st' category will be omitted and we'll get binary variables for '2nd' and '3rd'. Refer back to the binary variables lessons!
+   
+   5. We have a fair bit of missing age data
+
+
+- Class: cmd_question
+  Output: |-
+   That missing age data will mess up our code later, since the number of predicted values won't match the number of observations in the data.
+   
+   Use 
+   
+   TitanicSurvival <- TitanicSurvival %>% na.omit()
+   
+   to drop any rows with missing data in any variable.
+   
+   This isn't necessarily the most principled way to deal with missing data, but it will do for now!
+  CorrectAnswer: TitanicSurvival <- TitanicSurvival %>% na.omit()
+  AnswerTests: omnitest(correctExpr='TitanicSurvival <- TitanicSurvival %>% na.omit()')
+  Hint: Copy in the TitanicSurvival <- TitanicSurvival %>% na.omit() code
+
+
+- Class: mult_question
+  Output: |-
+   We will be predicting survival with the other variables in the data.
+   
+   Let's start with a linear probability model. Use lm() to regress survival on the other variables in the data.
+   
+   Actually, scratch that. 
+   
+   We're going to use lm_robust() from estimatr instead.
+   
+   Why is it important to always run a linear probability model with heteroskedasticity-robust standard errors?
+  AnswerChoices: Because the outcome is always 0 or 1, error variance will always be higher when the prediction is near .5 than when it is near 0 or 1; Because we should always run robust standard errors regardless of anything; Because the LPM model predicts outside the bounds of 0 and 1; Because it helps handle endogeneity
+  CorrectAnswer: Because the outcome is always 0 or 1, error variance will always be higher when the prediction is near .5 than when it is near 0 or 1
+  AnswerTests: omnitest(correctVal='Because the outcome is always 0 or 1, error variance will always be higher when the prediction is near .5 than when it is near 0 or 1')
+  Hint: Try drawing a picture with a bunch of observations at Y = 0 and at Y = 1, then draw a straight line connecting them. Then imagine what the variance of the points around the line is at a given X value.
+
+
+- Class: cmd_question
+  Output: |-
+   Before we run our LPM, we need a slight adjustment.
+   
+   While the probit and logit models we're about to run are used to factors and can handle them, OLS can't! It needs the dependent variable to be a logical (TRUE/FALSE) or numeric (1/0).
+   
+   So, use mutate to create a new variable surv_TF equal to survived == 'yes' and overwrite TitanicSurvival.
+  CorrectAnswer: TitanicSurvival <- TitanicSurvival %>% mutate(surv_TF = survived == 'yes')
+  AnswerTests: cor(TitanicSurvival[['surv_TF']], TitanicSurvival[['survived']] == 'yes') > .99
+  Hint: Use mutate as normal. This time you're creating a new variable surv_TF equal to survived == 'yes'
+
+
+- Class: cmd_question
+  Output: |-
+   Okay! Now use lm_robust() from estimatr to regress surv_TF on the other variables in the data.
+   
+   Save the result as lpm
+  CorrectAnswer: lpm <- lm_robust(surv_TF ~ sex + age + passengerClass, data = TitanicSurvival)
+  AnswerTests: ifelse(exists('lpm'),cor(lpm$fitted.values,lm_robust(surv_TF ~ sex + age + passengerClass, data = TitanicSurvival)$fitted.values) > .99, FALSE)
+  Hint: Run a lm_robust() regression as normal, using surv_TF as the dependent variable and sex, age, and passengerClass as independent.
+
+- Class: cmd_question
+  Output: Use export_summs() to look at the result.
+  CorrectAnswer: export_summs(lpm)
+  AnswerTests: omnitest(correctExpr='export_summs(lpm)')
+  Hint: Send lpm to export_summs()
+
+
+- Class: figure
+  Output: |-
+   Take a look at this figure graphing the LPM predicted values against the local means, with age as the x-axis variable.
+   
+   This graph was made using geom_smooth (and also y=surv_TF*1, since ggplot doesn't handle logicals properly with geom_smooth, it needs numbers)
+   
+   ggplot(TitanicSurvival, aes(x = age, y = surv_TF*1)) + 
+      geom_point() + 
+      geom_smooth(se = FALSE, color = 'blue') + 
+      geom_smooth(method = 'lm', se = FALSE, color = 'red')
+  Figure: lpm_local.R
+  FigureType: new
+
+- Class: mult_question
+  Output: |-
+   LPM seems to do a decent job here of matching the slope described by the local means, and never predicting outside the bounds of 0 and 1.
+   
+   What features of this problem might contribute to LPM doing a good job here?
+  AnswerChoices: The average of the dependent variable is not near 0 or 1; LPM performs better than other methods when lots of fixed effects are involved; We're only interested in the slope, not the prediction; LPM is not doing a good job here.
+  CorrectAnswer: The average of the dependent variable is not near 0 or 1
+  AnswerTests: omnitest(correctVal='The average of the dependent variable is not near 0 or 1')
+  Hint: The biggest differences between LPM and probit/logit come when the mean of the dependent variable is near 0 or 1.
+
+- Class: cmd_question
+  Output: |-
+   Now let's estimate the model again using logit.
+   
+   We'll be using logit throughout the rest of this lesson, but everything could just as easily been done with probit with little difference.
+   
+   Use glm() instead of lm_robust, and specify the option family = binomial(link = 'logit') to run our model using logistic regression. Save the result as logit.
+   
+   (by the way, exploring help(glm) and its family option is a great way to learn about all sorts of GLM model link functions and what they're used for! There's way more than just linear and binary variables in the world! Even more than GLM covers!)
+  CorrectAnswer: logit <- glm(survived ~ age + sex + passengerClass, data = TitanicSurvival, family = binomial(link = 'logit'))
+  AnswerTests: ifelse(exists('logit'), cor(predict(logit), predict(glm(survived ~ age + sex + passengerClass, data = TitanicSurvival, family = binomial(link = 'logit')))) > .95, FALSE)
+  Hint: Run the model just like a regular lm, except use the glm() function, and add the argument family = binomial(link = 'logit').
+
+- Class: cmd_question
+  Output: Use export_summs() to look at lpm and logit together.
+  CorrectAnswer: export_summs(lpm, logit)
+  AnswerTests: any_of_exprs('export_summs(lpm, logit)','export_summs(logit,lpm)')
+  Hint: Send both lpm and logit to export_summs.
+
+- Class: mult_question
+  Output: How can we interpret the -.49 coefficient? Assume each option has "controlling for age and passenger class..." tacked onto the beginning.
+  AnswerChoices: Men were 49% less likely to survive the Titanic; Men were 49 percentage points less likely to survive; Men were .49 more likely to survive the Titanic; There's no easy way to interpret the coefficient.
+  CorrectAnswer: Men were 49 percentage points less likely to survive
+  AnswerTests: omnitest(correctVal='Men were 49 percentage points less likely to survive')
+  Hint: The interpretation of a coefficient in an LPM is the same as for regular OLS as if the dependent variable were "the probability that the dependent variable is 1".
+
+- Class: mult_question
+  Output: How can we interpret the -2.50 coefficient? Assume each option has "controlling for age and passenger class..." tacked onto the beginning.
+  AnswerChoices: Men were 2.5% less likely to survive the Titanic; Men were 2.5 percentage points less likely to survive; Men were 250% less likely to survive; Men were 250 percentage points less likely to survive; Men were less likely to survive but it is hard to say how much; There's no easy way to interpret the coefficient.
+  CorrectAnswer: Men were less likely to survive but it is hard to say how much
+  AnswerTests: omnitest(correctVal='Men were less likely to survive but it is hard to say how much')
+  Hint: Logit coefficients can be interpreted in logit terms but this is very difficult to do off-hand. However, we can get information from the sign (negative/positive) of the coefficient.
+
+- Class: cmd_question
+  Output: |-
+   The way a GLM works is by using the coefficients to predict an *index variable*. Then it runs that index variable through the link function to get its predicted values.
+   
+   Use mutate to create a new variable called index_predict, overwriting the TitanicSurvival you have now.
+   
+   This variable should be based on predict(logit).
+   
+   However, we can't just say predict(logit) because now that we have a GLM, there are many things to predict - response probability, index itself, something else?
+   
+   So, add to predict(logit) the argument type = 'link' to get the index variable.
+  CorrectAnswer: TitanicSurvival <- TitanicSurvival %>% mutate(index_predict = predict(logit, type = 'link'))
+  AnswerTests: cor(TitanicSurvival[['index_predict']],predict(logit, type = 'link')) > .99; expr_uses_func('mutate')
+  Hint: predict(logit, type = 'link') will give you the predicted values. Just make that the right-hand-side part of a mutate command creating the variable index_predict, storing that new variable in TitanicSurvival.
+
+- Class: cmd_question
+  Output: |-
+   Now let's get its predictions for the probability that survived == 'yes'.
+   
+   Use mutate to create a new variable called response_predict, overwriting the TitanicSurvival you have now.
+   
+   This should be the same as last time, except you should use type = 'response' as an option.
+  CorrectAnswer: TitanicSurvival <- TitanicSurvival %>% mutate(response_predict = predict(logit, type = 'response'))
+  AnswerTests: cor(TitanicSurvival[['response_predict']],predict(logit, type = 'response')) > .99; expr_uses_func('mutate')
+  Hint: predict(logit, type = 'response') will give you the predicted values. Just make that the right-hand-side part of a mutate command creating the variable response_predict, storing that new variable in TitanicSurvival.
+
+- Class: cmd_question
+  Output: |-
+   We can see that it runs the index through its link function to get its prediction.
+   
+   The logit link function is exp(x)/(1+exp(x)).
+   
+   Let's create that as a function so we can check logit's work! Put in:
+   
+   loglink <- function(x) { exp(x)/(1+exp(x)) }
+  CorrectAnswer: loglink <- function(x) { exp(x)/(1+exp(x)) }
+  AnswerTests: omnitest(correctExpr='loglink <- function(x) { exp(x)/(1+exp(x)) }')
+  Hint: Copy/paste the loglink function in.
+
+- Class: cmd_question
+  Output: |-
+   See how easy it is to create our own function?
+   
+   Now, take TitanicSurvival$index_predict, send that to loglink(), and then get the correlation of that with TitanicSurvival$response_predict using cor(x,y). 
+   
+   We should get a pretty high (if not exactly perfect, due to rounding issues) correlation! That's how we get from one to the other.
+  CorrectAnswer: TitanicSurvival %>% pull(index_predict) %>% loglink() %>% cor(TitanicSurvival$response_predict)
+  AnswerTests: omnitest(correctVal=TitanicSurvival %>% pull(index_predict) %>% loglink() %>% cor(TitanicSurvival$response_predict))
+  Hint: We want the cor(x,y) of two variables. Our x is loglink(TitanicSurvival$index_predict), and our y is TitanicSurvival$response_predict.
+
+- Class: cmd_question
+  Output: |-
+   Now let's see the coefficients and (an imitation of) the marginal effects!
+   
+   Use group_by(sex) with
+   
+   summarize(index = mean(index_predict), resp = mean(response_predict))
+   
+   to get the average index and average predicted response by sex.
+  CorrectAnswer: TitanicSurvival %>% group_by(sex) %>% summarize(index = mean(index_predict), resp = mean(response_predict))
+  AnswerTests: omnitest(correctVal='TitanicSurvival %>% group_by(sex) %>% summarize(index = mean(index_predict), resp = mean(response_predict))')
+  Hint: We have TitanicSurvival, group_by(sex), and the summarize() function above. Link the three of them with pipes %>%
+
+- Class: text
+  Output: |-
+   You can see the difference in the index between men and women of (-1.55 - 1.30) = -2.85, similar to the -2.5 coefficient (why isn't it exactly the same? Becuase this isn't actually how those coefficients come about, this is just an illustration).
+   
+   Similarly, you can see the difference in the predicted probability of (.205 - .753) = -552, similar to the -.49 we got with the linear probability model, and probably close to about what we'll get when we calculate marginal effects properly!
+   
+   Let's go ahead and do that.
+
+- Class: cmd_question
+  Output: |-
+   Send logit to margins() from the margins package to get the marginal effects of each of the variables. Store the result as margfx.
+   
+   No options should be necessary. By default it will produce Average Marginal Effects (i.e. it will calculate the marginal effect for each person, since marginal effects vary based on the values of the independent variables) and average those. That's what we want! It's usually what we want.
+  CorrectAnswer: margfx <- margins(logit)
+  AnswerTests: any_of_exprs('margfx <- margins(logit)', 'margfx <- logit %>% margins()')
+  Hint: Just put logit inside the margins() function.
+
+- Class: cmd_question
+  Output: Now use export_summs() to look at lpm and margfx together. Add the option statistics = c(N = "nobs.1") to keep things clean.
+  CorrectAnswer: export_summs(lpm, margfx, statistics = c(N = "nobs.1"))
+  AnswerTests: omnitest(correctExpr='export_summs(lpm, margfx, statistics = c(N = "nobs.1"))')
+  Hint: Send both lpm and margfx to export_summs() with the statistics = c(N = "nobs.1") argument.
+
+- Class: text
+  Output: Looks like LPM and logit marginal effects give very similar answers in this case! Although do keep in mind that won't always be true.
+
+- Class: cmd_question
+  Output: |-
+   The margins() command we did got us average marginal effects, but maybe we want the marginal effect *for a particular type of person*.
+   
+   Look at help(margins, package = 'margins') (the package = 'margins' part may be necessary because there's another margins function in a different, popular package) and focus on the at option (and the examples at the bottom of using at) to see the syntax for calculating the marginal effect *at* a particular set of values.
+  CorrectAnswer: help(margins, package = "margins")
+  AnswerTests: omnitest(correctExpr='help(margins, package = "margins")')
+  Hint: Type help(margins, package = "margins")
+
+- Class: cmd_question
+  Output: |-
+   Use margins to calculate the marginal effects at age = 60. Store the result as fx60.
+   
+   Note this will not calculate the marginal effects *among 60-year-olds*. Rather, it will calculate the marginal effect of each variable *as though everyone's index were what it would be if age were 60*.
+  CorrectAnswer: fx60 <- margins(logit, at = list(age = 60))
+  AnswerTests: omnitest(correctExpr='fx60 <- margins(logit, at = list(age = 60))')
+  Hint: Take the margins command from before and add at = list(age = 60) as an argument.
+
+- Class: cmd_question
+  Output: Use export_summs() to look at lpm, margfx, and fx60 together, with the statistics = c(N = "nobs.1") argument. You will get a warning about there not being a nobs default method - don't worry about it.
+  CorrectAnswer: export_summs(lpm, margfx, fx60, statistics = c(N = "nobs.1"))
+  AnswerTests: omnitest(correctExpr='export_summs(lpm, margfx, fx60, statistics = c(N = "nobs.1"))')
+  Hint: Send lpm, margfx, and fx60 all to export_summs() with the statistics = c(N = "nobs.1") argument.
+
+- Class: cmd_question
+  Output: |-
+   We will close things out with some joint hypothesis tests!
+   
+   We will be testing if the passengerClass variable matters.
+   
+   First, we will use linearHypothesis from car as we normally do.
+   
+   We haven't loaded the car package, but we can still access functions from it using car::
+   
+   Use car::linearHypothesis to test whether passengerClass2nd and passengerClass3rd are jointly 0 in logit.
+  CorrectAnswer: car::linearHypothesis(logit, c('passengerClass2nd','passengerClass3rd'))
+  AnswerTests: omnitest(correctExpr='car::linearHypothesis(logit, c("passengerClass2nd","passengerClass3rd"))')
+  Hint: Use linearHypothesis as normal, except call it with car::linearHypothesis. logit is the model, and we are testing c('passengerClass2nd','passengerClass3rd').
+
+- Class: cmd_question
+  Output: |-
+   Although that one doesn't operate by likelihood ratio test.
+   
+   First we need to estimate a restricted model without the variables we want to test.
+   
+   Do another logit regression, this time of survived on sex and age but NOT passengerClass, and store it as restricted.
+  CorrectAnswer: restricted <- glm(survived ~ age + sex, data = TitanicSurvival, family = binomial(link = 'logit'))
+  AnswerTests: ifelse(exists('restricted'),cor(predict(restricted), predict(glm(survived ~ age + sex, data = TitanicSurvival, family = binomial(link = 'logit')))) > .99, FALSE)
+  Hint: Use the same glm() code from before but omit passengerClass.
+
+- Class: cmd_question
+  Output: |-
+   Now we will do our likelihood ratio test using lrtest from the lmtest package.
+   
+   We haven't loaded lmtest, but we can just use lmtest::lrtest().
+   
+   Send both logit and restricted to lmtest::lrtest.
+  CorrectAnswer: lmtest::lrtest(logit, restricted)
+  AnswerTests: omnitest(correctExpr='lmtest::lrtest(logit, restricted)')
+  Hint: Make logit and restricted the first and second arguments of lmtest::lrtest().
+
+- Class: mult_question
+  Output: Based on this output, are the passengerClass binary variables jointly significant at the 1% level?
+  AnswerChoices: Yes; No; No way to tell
+  CorrectAnswer: Yes
+  AnswerTests: omnitest(correctVal='Yes')
+  Hint: Look at Pr(>Chisq) for the p-value. Remember, Xe-Y means X*(10^-Y).
