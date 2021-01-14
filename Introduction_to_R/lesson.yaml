@@ -412,7 +412,7 @@
    
    (b) Pick just the columns age and circumference
    
-   (c) Create a new column called circ_by_age which is circumference divided by ge
+   (c) Create a new column called circ_by_age which is circumference divided by age
    
    (d) Pull that new variable out
    
