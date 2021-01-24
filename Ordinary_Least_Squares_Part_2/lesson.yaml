@@ -304,7 +304,7 @@
    
    Store the regression as biased_reg
   CorrectAnswer: biased_reg <- lm(Y~X, data = tb)
-  AnswerTests: identical(predict(biased_reg),predict(lm(Y~X, data = tb)))
+  AnswerTests: ifelse(exists('biased_reg'),identical(predict(biased_reg),predict(lm(Y~X, data = tb))),FALSE)
   Hint: Run a regression as normal, with Y ~ X, and store the result as biased_reg.
 
 - Class: cmd_question
