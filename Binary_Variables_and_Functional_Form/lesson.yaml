@@ -157,8 +157,8 @@
 - Class: cmd_question
   Output: Now, this graph isn't showing the curviest line I've ever seen, but it has curves! We may want a polynomial here. Regress volunteered on extraversion, and, using I(), extraversion squared. Store the result as m2.
   CorrectAnswer: m2 <- lm(volunteered ~ extraversion + I(extraversion^2), data = Cowles)
-  AnswerTests: ifelse(exists('m2'), cor(predict(m2),predict(lm(volunteered ~ extraversion + I(extraversion^2), data = Cowles))) > .99,FALSE)
-  Hint: You can add a squared term to a regression with I(varname^2)
+  AnswerTests: ifelse(exists('m2'), (sum(c('extraversion', 'I(extraversion^2)') %in% names(coef(m2))) == 2) & (length(coef(m2)) == 3),FALSE)
+  Hint: You can add a squared term to a regression with I(varname^2). Don't forget to include extraversion by itself, too! You always want the lower-order terms too when doing a polynomial.
 
 - Class: cmd_question
   Output: Use export_summs() to look at both m1 and m2. Include the option digits = 3.
