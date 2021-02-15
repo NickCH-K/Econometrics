@@ -238,13 +238,25 @@
    
    linearHypothesis(fe_lsdv, matchCoefs(fe_lsdv, 'distid'))
    
-   to see if you can reject that the intercept is the same for all districts
+   to see if you can reject that the intercept is the same for all districts.
+   
+   NOTE: Mac computers seem to have difficulty processing this giant test. If you're using a mac, just answer 'mac' with the quotes to go to the next question.
   CorrectAnswer: linearHypothesis(fe_lsdv, matchCoefs(fe_lsdv, "distid"))
-  AnswerTests: omnitest(correctExpr='linearHypothesis(fe_lsdv, matchCoefs(fe_lsdv, "distid"))')
+  AnswerTests: any_of_exprs('linearHypothesis(fe_lsdv, matchCoefs(fe_lsdv, "distid"))','"mac"')
   Hint: Just copy/paste the code.
 
 - Class: mult_question
-  Output: Can we reject that the intercept is the same for all districts at the 1% level?
+  Output: |-
+   The output of the test is:
+   
+   Model 1: restricted model
+   Model 2: math4 ~ expp + lunch + factor(distid)
+   
+   Res.Df    RSS  Df Sum of Sq      F    Pr(>F)    
+   1   3847 882322                                   
+   2   3298 408135 549    474186 6.9795 < 2.2e-16 ***
+   
+   Can we reject that the intercept is the same for all districts at the 1% level?
   AnswerChoices: Yes;No
   CorrectAnswer: Yes
   AnswerTests: omnitest(correctVal='Yes')
