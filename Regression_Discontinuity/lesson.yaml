@@ -211,8 +211,8 @@
    Given these estimated coefficients, what is the predicted mortality rate (per 10,000 people) for someone whose age is 20.95?
    
    You should use the coef functions to extract coefficients from the regression object. For example, remember that coef(model_2)[[1]] will return the constant. 
-  CorrectAnswer: coef(model_2)[[1]] + coef(model_2)[[2]]*21.05
-  AnswerTests: omnitest(correctVal=coef(model_2)[[1]] + coef(model_2)[[2]]*21.05)
+  CorrectAnswer: coef(model_2)[[1]] + coef(model_2)[[2]]*20.95
+  AnswerTests: omnitest(correctVal=coef(model_2)[[1]] + coef(model_2)[[2]]*20.95)
   Hint: Write out the regression equation to visualize your calculation
 
 - Class: cmd_question
