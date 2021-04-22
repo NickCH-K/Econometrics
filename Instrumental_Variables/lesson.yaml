@@ -11,11 +11,11 @@
   Output: |-
    This lesson will focus on instrumental variables and how to perform IV in R.
    
-   It will require the use of the packages **scales**, **tidyverse**, **jtools**, **estimatr**, and **AER**.
+   It will require the use of the packages **tidyverse**, **jtools**, **fixest**, and **AER**.
    
    If you do not have those installed, you can exit out of here (bye() works), install them with
    
-   install.packages(c('scales','tidyverse','jtools','estimatr','AER'), dependencies = TRUE)
+   install.packages(c('tidyverse','jtools','fixest','AER'), dependencies = TRUE)
    
    and return here with swirl()
 
@@ -37,10 +37,10 @@
 
 - Class: cmd_question
   Output: |-
-   Now library(estimatr)
-  CorrectAnswer: library(estimatr)
-  AnswerTests: omnitest(correctExpr='library(estimatr)')
-  Hint: Put in library(estimatr)
+   Now library(fixest)
+  CorrectAnswer: library(fixest)
+  AnswerTests: omnitest(correctExpr='library(fixest)')
+  Hint: Put in library(fixest)
 
 - Class: cmd_question
   Output: |-
@@ -48,13 +48,6 @@
   CorrectAnswer: library(AER)
   AnswerTests: omnitest(correctExpr='library(AER)')
   Hint: Put in library(AER)
-
-- Class: cmd_question
-  Output: |-
-   Now library(scales)
-  CorrectAnswer: library(scales)
-  AnswerTests: omnitest(correctExpr='library(scales)')
-  Hint: Put in library(scales)
 
 - Class: cmd_question
   Output: |-
@@ -142,26 +135,26 @@
 
 - Class: cmd_question
   Output: |-
-   We will be using the estimatr command iv_robust to estimate our IV models.
+   We will be using the fixest command feols to estimate our IV models.
    
-   Use help(iv_robust) to look at how to use iv_robust. Pay particular attention to how the IV formula is set up (perhaps look at those examples at the bottom), where we use | to separate the second stage from the first stage.
+   Use help(feols) to look at how to use feols for instrumental variables. Pay particular attention to how the IV formula is set up (perhaps look at those examples for the fml argument), where we use | to separate the outcome and controls from the endogenous variable and instrument
    
-   outcome ~ endogenous_variable + control | instrument + control
-  CorrectAnswer: help(iv_robust)
-  AnswerTests: omnitest(correctExpr='help(iv_robust)')
-  Hint: Just type help(iv_robust)
+   outcome ~ control | endogenous_variable ~ instrument
+  CorrectAnswer: help(feols)
+  AnswerTests: omnitest(correctExpr='help(feols)')
+  Hint: Just type help(feols)
 
 - Class: cmd_question
   Output: |-
-   Use iv_robust to regress log(packs) on log(rprice), using taxdiff as an instrument. No controls included.
+   Use feols to regress log(packs) on log(rprice), using taxdiff as an instrument. No controls included. To skip controls, just put a 1 where the controls should be.
    
    Save the result as iv1.
-  CorrectAnswer: iv1 <- iv_robust(log(packs) ~ log(rprice) | taxdiff, data = CigarettesSW)
-  AnswerTests: ifelse(exists('iv1'),cor(iv1$fitted.values, iv_robust(log(packs) ~ log(rprice) | taxdiff, data = CigarettesSW)$fitted.values) > .99, FALSE)
-  Hint: Use iv_robust just like you use lm or lm_robust, but with | taxdiff added on to the end of the formula.
+  CorrectAnswer: iv1 <- feols(log(packs) ~ 1 | log(rprice) ~ taxdiff, data = CigarettesSW)
+  AnswerTests: ifelse(exists('iv1'),cor(iv1$fitted.values, feols(log(packs) ~ 1 | log(rprice) ~ taxdiff, data = CigarettesSW)$fitted.values) > .99, FALSE)
+  Hint: Use feols with two parts to the formula: log(packs) regressed on 1 in the first, and log(rprice) regressed on taxdiff in the second.
 
 - Class: cmd_question
-  Output: Use export_summs() to look at ols and iv1 together.
+  Output: Use export_summs() to look at ols and iv1 together. Note that feols will rename the endogenous variable to start with "fit_", reminding you that it is using the fitted/predicted values from that first stage.
   CorrectAnswer: export_summs(ols, iv1)
   AnswerTests: omnitest(correctExpr='export_summs(ols, iv1)')
   Hint: Send both ols and iv1, in that order, to export_summs()
@@ -182,17 +175,17 @@
 
 
 - Class: cmd_question
-  Output: Run the "first stage" model using lm_robust(), showing the impact of the instrument on the endogenous variable. Send it straight to summary() rather than saving it or sending it to export_summs().
-  CorrectAnswer: CigarettesSW %>% lm_robust(log(rprice) ~ taxdiff, data = .) %>% summary()
-  AnswerTests: omnitest(correctVal='CigarettesSW %>% lm_robust(log(rprice) ~ taxdiff, data = .) %>% summary()')
-  Hint: Use lm_robust to regress log(rprice) on taxdiff, and send the result to summary()
+  Output: Get the "first stage" model from the iv1 object using summary(iv1, stage = 1), showing the impact of the instrument on the endogenous variable. (note iv1$iv_first_stage would also work, especially if you were sending to export_summs)
+  CorrectAnswer: summary(iv1, stage = 1)
+  AnswerTests: omnitest(correctVal='summary(iv1, stage = 1)')
+  Hint: Use Just send iv1 to the summary() function, and add the stage = 1 option.
 
 - Class: mult_question
-  Output: Does this result raise any clear concerns about taxdiff being a weak instrument?
+  Output: Note the F-test at the bottom of the summary (note this won't show up automatically in export_summs, which is why we did summary instead). Does this result raise any clear concerns about taxdiff being a weak instrument?
   AnswerChoices: No; Yes; This provides no information about being a weak instrument
   CorrectAnswer: No
   AnswerTests: omnitest(correctVal='No')
-  Hint: A common rule of thumb is that a t-statistic on the instrument of less than 3 raises weak instrument concerns (although using a rule of thumb in general for this is not ideal).
+  Hint: A common rule of thumb is that a F-statistic on the instrument of less than 10 raises weak instrument concerns (although using a rule of thumb in general for this is not ideal).
 
 - Class: mult_question
   Output: |-
@@ -210,25 +203,16 @@
    
    We'll be using the amount of overall excise taxes, the variable tax, as another instrument.
    
-   Rerun your iv_robust model but also include tax as an instrument. Also set diagnostics = TRUE. Save the result as iv2.
-  CorrectAnswer: iv2 <- iv_robust(log(packs) ~ log(rprice) | taxdiff + tax, data = CigarettesSW, diagnostics = TRUE)
-  AnswerTests: ifelse(exists('iv2'),cor(iv2$fitted.values, iv_robust(log(packs) ~ log(rprice) | taxdiff + tax, data = CigarettesSW, diagnostics = TRUE)$fitted.values) > .99, FALSE); !is.null(iv2[['diagnostic_first_stage_fstatistic']])
-  Hint: Reuse your iv1 code, but add +tax after taxdiff and set diagnostics = TRUE.
+   Rerun your feols model again but also include tax as an instrument. Save the result as iv2.
+  CorrectAnswer: iv2 <- feols(log(packs) ~ 1 | log(rprice) ~ taxdiff + tax, data = CigarettesSW)
+  AnswerTests: ifelse(exists('iv2'),cor(iv2$fitted.values, feols(log(packs) ~ 1 | log(rprice) ~ taxdiff + tax, data = CigarettesSW)$fitted.values) > .99, FALSE)
+  Hint: Reuse your iv1 code, but add +tax after taxdiff.
 
 - Class: cmd_question
-  Output: Type iv2$ and let autocomplete help you find the first-stage F statistic stored in iv2 because you set diagnostics = TRUE.
-  CorrectAnswer: iv2$diagnostic_first_stage_fstatistic
-  AnswerTests: omnitest(correctVal='iv2$diagnostic_first_stage_fstatistic')
-  Hint: If you type iv2$ and start using the arrow keys, eventually you'll find an option that looks like "diagnostic f statistic". Hit enter on that! Then run the result.
-
-- Class: cmd_question
-  Output: |-
-   That's a little difficult to parse with all the e notation.
-   
-   Print the iv2$diagnostic_first_stage_fstatistic again, but this time wrap it in number(accuracy = .1) from the scales package. This will make it a bit easier to read.
-  CorrectAnswer: number(iv2$diagnostic_first_stage_fstatistic, accuracy = .1)
-  AnswerTests: any_of_exprs('number(iv2$diagnostic_first_stage_fstatistic, accuracy = .1)', 'iv2$diagnostic_first_stage_fstatistic %>% number(accuracy = .1)')
-  Hint: Just take the same answer from last time and make it the first argument of number() with the accuracy = .1 option set.
+  Output: This time, let's find the first-stage F statistic in a different way. Send your iv2 model to the fitstat function, with the type = 'ivf' option. fitstat is a flexible function that will help us get other statistics from our model, too.
+  CorrectAnswer: fitstat(iv2, type = 'ivf')
+  AnswerTests: omnitest(correctVal='fitstat(iv2, type = 'ivf')')
+  Hint: Call the fitstat() function with the first argument of iv2 and the second argument of type = 'ivf'.
 
 - Class: mult_question
   Output: Does this result raise any clear concerns about weak instrument problems?
@@ -238,10 +222,16 @@
   Hint: A common rule of thumb is that a first-stage F-statistic (which is what this diagnostic F-statistic is) of less than 10  raises weak instrument concerns (although using a rule of thumb in general for this is not ideal).
 
 - Class: cmd_question
-  Output: Type iv2$ and let autocomplete help you find the overidentification test statistic stored in iv2 because you set diagnostics = TRUE.
-  CorrectAnswer: iv2$diagnostic_overid_test
-  AnswerTests: omnitest(correctVal='iv2$diagnostic_overid_test')
-  Hint: If you type iv2$ and start using the arrow keys, eventually you'll find an option that looks like "diagnostic overid test". Hit enter on that! Then run the result.
+  Output: Type help(fitstat) and look for the correct type argument that will give you an overidentification test (hint: use find-in-page and search for "overid")
+  CorrectAnswer: help(fitstat)
+  AnswerTests: omnitest(correctExpr='help(fitstat)')
+  Hint: Look through those docs! Always look through those docs.
+
+- Class: cmd_question
+  Output: Use fitstat to find the results of the overidentification test.
+  CorrectAnswer: fitstat(iv2, 'sargan')
+  AnswerTests: omnitest(correctVal='fitstat(iv2, 'sargan')')
+  Hint: Call the fitstat() function with the first argument of iv2 and the second argument of type = 'sargan'.
 
 - Class: mult_question
   Output: |-

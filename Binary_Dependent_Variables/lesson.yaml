@@ -10,15 +10,11 @@
   Output: |-
    This lesson will go through the probit and logit regression methods, used when your dependent variable is binary (0/1, False/True, No/Yes, etc), as well as generalized linear models generally.
    
-   For this lesson you will need the margins, lmtest, car, estimatr, tidyverse, vtable, and jtools packages.
+   For this lesson you will need the margins, lmtest, car, tidyverse, vtable, and jtools packages.
    
-   You can install these by exiting out of here (bye() works), installing these with install.packages(c('margins','lmtest','car','estimatr','tidyverse','vtable','jtools'), dependencies = TRUE), and coming back in with swirl().
+   You can install these by exiting out of here (bye() works), installing these with install.packages(c('margins','lmtest','car','tidyverse','vtable','jtools'), dependencies = TRUE), and coming back in with swirl().
 
-   Also, right now, using margins with export_summs requires the *development* version of the broom package. You can install this with:
-   
-   remotes::install_github('tidymodels/broom')
-   
-   (you may need to install the remotes package with install.packages('remotes') first)
+   **Note that export_summs relies on a package called broom, and old versions of broom don't work with margins. If you get problems using export_summs with margins, try updating the broom package with install.packages('broom')**
 
 - Class: cmd_question
   Output: |-
@@ -42,14 +38,7 @@
   CorrectAnswer: library(jtools)
   AnswerTests: omnitest(correctExpr='library(jtools)')
   Hint: Copy in library(jtools)
-  
-- Class: cmd_question
-  Output: |-
-   Now library(estimatr)
-  CorrectAnswer: library(estimatr)
-  AnswerTests: omnitest(correctExpr='library(estimatr)')
-  Hint: Copy in library(estimatr)
-
+ 
 - Class: cmd_question
   Output: |-
    Now library(margins)
@@ -58,7 +47,7 @@
   Hint: Copy in library(margins)
 
 - Class: cmd_question
-  Output: Now let's load in our data. Load in the TitanicSurvival data set, which comes from the carData package. Since we haven't actually loaded the carData package, we can load the data directly by adding a package='carData' option to our data() function. This data set tracks the demographics and surival of passengers aboard the Titanic ship disaster.
+  Output: Now let's load in our data. Load in the TitanicSurvival data set, which comes from the carData package. Since we haven't actually loaded the carData package, we can load the data directly by adding a package='carData' option to our data() function. This data set tracks the demographics and survival of passengers aboard the Titanic ship disaster.
   CorrectAnswer: data(TitanicSurvival, package = 'carData')
   AnswerTests: omnitest(correctExpr='data(TitanicSurvival, package = "carData")')
   Hint: Use TitanicSurvival in data()
@@ -104,11 +93,9 @@
   Output: |-
    We will be predicting survival with the other variables in the data.
    
-   Let's start with a linear probability model. Use lm() to regress survival on the other variables in the data.
+   Let's start with a linear probability model. We're going to ue lm() to regress survival on the other variables in the data.
    
-   Actually, scratch that. 
-   
-   We're going to use lm_robust() from estimatr instead.
+   Then, after we estimate it, we're going to be sure to *always* use it with robust standard errors.
    
    Why is it important to always run a linear probability model with heteroskedasticity-robust standard errors?
   AnswerChoices: Because the outcome is always 0 or 1, error variance will always be higher when the prediction is near .5 than when it is near 0 or 1; Because we should always run robust standard errors regardless of anything; Because the LPM model predicts outside the bounds of 0 and 1; Because it helps handle endogeneity
@@ -131,17 +118,17 @@
 
 - Class: cmd_question
   Output: |-
-   Okay! Now use lm_robust() from estimatr to regress surv_TF on the other variables in the data.
+   Okay! Now use lm() from estimatr to regress surv_TF on the other variables in the data.
    
    Save the result as lpm
-  CorrectAnswer: lpm <- lm_robust(surv_TF ~ sex + age + passengerClass, data = TitanicSurvival)
-  AnswerTests: ifelse(exists('lpm'),cor(lpm$fitted.values,lm_robust(surv_TF ~ sex + age + passengerClass, data = TitanicSurvival)$fitted.values) > .99, FALSE)
-  Hint: Run a lm_robust() regression as normal, using surv_TF as the dependent variable and sex, age, and passengerClass as independent.
+  CorrectAnswer: lpm <- lm(surv_TF ~ sex + age + passengerClass, data = TitanicSurvival)
+  AnswerTests: ifelse(exists('lpm'),cor(predict(lpm),predict(lm(surv_TF ~ sex + age + passengerClass, data = TitanicSurvival))) > .99, FALSE)
+  Hint: Run a lm regression as normal, using surv_TF as the dependent variable and sex, age, and passengerClass as independent.
 
 - Class: cmd_question
-  Output: Use export_summs() to look at the result.
-  CorrectAnswer: export_summs(lpm)
-  AnswerTests: omnitest(correctExpr='export_summs(lpm)')
+  Output: Use export_summs() with robust = TRUE to look at the result.
+  CorrectAnswer: export_summs(lpm, robust = TRUE)
+  AnswerTests: omnitest(correctExpr='export_summs(lpm, robust = TRUE)')
   Hint: Send lpm to export_summs()
 
 
@@ -174,18 +161,18 @@
    
    We'll be using logit throughout the rest of this lesson, but everything could just as easily been done with probit with little difference.
    
-   Use glm() instead of lm_robust, and specify the option family = binomial(link = 'logit') to run our model using logistic regression. Save the result as logit.
+   Use glm() instead of lm(), and specify the option family = binomial(link = 'logit') to run our model using logistic regression. Save the result as logit.
    
    (by the way, exploring help(glm) and its family option is a great way to learn about all sorts of GLM model link functions and what they're used for! There's way more than just linear and binary variables in the world! Even more than GLM covers!)
   CorrectAnswer: logit <- glm(survived ~ age + sex + passengerClass, data = TitanicSurvival, family = binomial(link = 'logit'))
   AnswerTests: ifelse(exists('logit'), cor(predict(logit), predict(glm(survived ~ age + sex + passengerClass, data = TitanicSurvival, family = binomial(link = 'logit')))) > .95, FALSE)
-  Hint: Run the model just like a regular lm, except use the glm() function, and add the argument family = binomial(link = 'logit').
+  Hint: Run the model just like a regular lm(), except use the glm() function, and add the argument family = binomial(link = 'logit').
 
 - Class: cmd_question
-  Output: Use export_summs() to look at lpm and logit together.
-  CorrectAnswer: export_summs(lpm, logit)
-  AnswerTests: any_of_exprs('export_summs(lpm, logit)','export_summs(logit,lpm)')
-  Hint: Send both lpm and logit to export_summs.
+  Output: Use export_summs() with robust = TRUE to look at lpm and logit together.
+  CorrectAnswer: export_summs(lpm, logit, robust = TRUE)
+  AnswerTests: any_of_exprs('export_summs(lpm, logit, robust = TRUE)','export_summs(logit,lpm, robust = TRUE)')
+  Hint: Send both lpm and logit to export_summs. Don't forget the robust = TRUE option.
 
 - Class: mult_question
   Output: How can we interpret the -.49 coefficient? Assume each option has "controlling for age and passenger class..." tacked onto the beginning.
@@ -282,10 +269,10 @@
   Hint: Just put logit inside the margins() function.
 
 - Class: cmd_question
-  Output: Now use export_summs() to look at lpm and margfx together. Add the option statistics = c(N = "nobs.1") to keep things clean.
-  CorrectAnswer: export_summs(lpm, margfx, statistics = c(N = "nobs.1"))
-  AnswerTests: omnitest(correctExpr='export_summs(lpm, margfx, statistics = c(N = "nobs.1"))')
-  Hint: Send both lpm and margfx to export_summs() with the statistics = c(N = "nobs.1") argument.
+  Output: Now use export_summs() with robust = TRUE to look at lpm and margfx together. Add the option statistics = c(N = "nobs.1") to keep things clean.
+  CorrectAnswer: export_summs(lpm, margfx, robust = TRUE, statistics = c(N = "nobs.1"))
+  AnswerTests: omnitest(correctExpr='export_summs(lpm, margfx, robust = TRUE, statistics = c(N = "nobs.1"))')
+  Hint: Send both lpm and margfx to export_summs() with the statistics = c(N = "nobs.1") argument and the robust = TRUE argument.
 
 - Class: text
   Output: Looks like LPM and logit marginal effects give very similar answers in this case! Although do keep in mind that won't always be true.

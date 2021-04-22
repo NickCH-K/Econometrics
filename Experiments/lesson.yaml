@@ -16,9 +16,9 @@
 
 - Class: text
   Output: |-
-   For this lesson you will need the packages **tidyverse**, **jtools**, **huxtable**, **estimatr**, and **vtable**
+   For this lesson you will need the packages **tidyverse**, **jtools**, **huxtable**, **fixest**, and **vtable**
    
-   If you don't have these, you'll need to install them. You can Escape or bye() out of this, install them with install.packages(c('tidyverse','jtools','estimatr','vtable'), dependencies = TRUE), and then swirl() to get back in.
+   If you don't have these, you'll need to install them. You can Escape or bye() out of this, install them with install.packages(c('tidyverse','jtools','fixest','vtable'), dependencies = TRUE), and then swirl() to get back in.
    
 - Class: cmd_question
   Output: |-
@@ -30,7 +30,7 @@
    
    library(jtools)
    
-   library(estimatr)
+   library(fixest)
   CorrectAnswer: |-
    library(tidyverse)
    
@@ -38,8 +38,8 @@
    
    library(jtools)
    
-   library(estimatr)
-  AnswerTests: sum(paste0('package:',c('tidyverse','vtable','jtools','estimatr')) %in% search()) == 4
+   library(fixest)
+  AnswerTests: sum(paste0('package:',c('tidyverse','vtable','jtools','fixest')) %in% search()) == 4
   Hint: Copy/paste! Or just type skip()
 
 
@@ -111,7 +111,7 @@
    
    You should get power values of approximately .8, .9, and .97
    
-   When you're done, come back here and continue on! We'll also show you some example code of how it could have been done.
+   When you're done, come back here and continue on! I'll also show you some example code of how it could have been done.
    
    Hint: next_purchase = effect*coupon + rnorm(sample_size, 0, 40)
 
@@ -302,32 +302,28 @@
    
    Gender seems like an issue - women were more likely than men to be sent coupons.
    
-   Do we need to worry about the other two?
+   Do we need to worry about the other two (assigned_coupon and next_purchase)?
   AnswerChoices: No, because treatment SHOULD be related to being assigned treatment, and what your next purchase is; No, becuase you'll see some differences by chance anyway; Yes, because there shouldn't be any differences; Yes, for next_purchase, although assigned_coupon is fine.
   CorrectAnswer: No, because treatment SHOULD be related to being assigned treatment, and what your next purchase is
   AnswerTests: omnitest(correctVal='No, because treatment SHOULD be related to being assigned treatment, and what your next purchase is')
-  Hint: Random experiments are about closing back doors - if something SHOULD be related to treatment, that's fine.
+  Hint: Random experiments are about closing back doors - if something SHOULD be related to treatment, it's fine that it's related to treatment.
 
 - Class: cmd_question
   Output: |-
    Run another intent-to-treat estimate of the experiment's results. 
    
-   This time, though:
-   
-   1. Use robust standard errors by using lm_robust(), since we might expect variance of next_purchase to differ by gender or coupon assignment.
-   
-   2. Add gender as a control, since we know there's a balance issue there.
+   This time, though, add gender as a control, since we know there's a balance issue there.
    
    Save the result as model2.
-  CorrectAnswer: model2 <- lm_robust(next_purchase ~ assigned_coupon + gender, data = df)
-  AnswerTests: ifelse(exists('model2'),cor(model2$fitted.values, lm_robust(next_purchase ~ assigned_coupon + gender, data = df)$fitted.values)> .99, FALSE)
-  Hint: Regress next_purchase on assigned_coupon and gender, using lm_robust.
+  CorrectAnswer: model2 <- lm(next_purchase ~ assigned_coupon + gender, data = df)
+  AnswerTests: ifelse(exists('model2'),cor(predict(model2), predict(lm(next_purchase ~ assigned_coupon + gender, data = df)))> .99, FALSE)
+  Hint: Regress next_purchase on assigned_coupon and gender, using lm.
 
 - Class: cmd_question
-  Output: Use export_summs() to look at model1 and model2
-  CorrectAnswer: export_summs(model1,model2)
-  AnswerTests: omnitest(correctExpr='export_summs(model1,model2)')
-  Hint: Send both model1 and model2 to export_summs()
+  Output: Use export_summs() to look at model1 and model2. This time, add robust standard errors, since we might expect variance of next_purchase to differ by gender or coupon assignment.
+  CorrectAnswer: export_summs(model1,model2, robust = TRUE)
+  AnswerTests: omnitest(correctExpr='export_summs(model1,model2, robust = TRUE)')
+  Hint: Send both model1 and model2 to export_summs() with the robust = TRUE option
 
 - Class: cmd_question
   Output: |-
@@ -343,28 +339,38 @@
    First, let's see what kinds of problems we might get by using actual treatment when we know compliance isn't right.
    
    Repeat the model you had for model2 but use sent_coupon instead of assigned_coupon. Save the result as model3.
-  CorrectAnswer: model3 <- lm_robust(next_purchase ~ sent_coupon + gender, data = df)
-  AnswerTests: ifelse(exists('model3'),cor(model3$fitted.values, lm_robust(next_purchase ~ sent_coupon + gender, data = df)$fitted.values)> .99, FALSE)
+  CorrectAnswer: model3 <- lm(next_purchase ~ sent_coupon + gender, data = df)
+  AnswerTests: ifelse(exists('model3'),cor(predict(model3), predict(lm(next_purchase ~ sent_coupon + gender, data = df)))> .99, FALSE)
   Hint: Regress next_purchase on sent_coupon and gender using lm_robust.
 
 - Class: cmd_question
   Output: |-
    Now, use two-stage least squares to adjust the effect of sent_coupon using how effective assigned_coupon was at actually increasing received-coupon rates.
    
-   We can do this with iv_robust instead of lm_robust.
+   We can do this with feols from the fixest package instead of lm.
    
-   The syntax for iv_robust is the same as lm_robust, except that after we specify our regression equation (Y~X+W), we add a bar |  and then give our list of "instruments" which includes both our treatment assignment AND any control variables, e.g. Y ~ X + W | Z + W if X is received-treatment and Z is assigned-treatment.
-   
-   Perform this regression and save it as model4.
-  CorrectAnswer: model4 <- iv_robust(next_purchase ~ sent_coupon + gender | assigned_coupon + gender, data = df)
-  AnswerTests: ifelse(exists('model4'),cor(model4$fitted.values, iv_robust(next_purchase ~ sent_coupon + gender | assigned_coupon + gender, data = df)$fitted.values)> .99, FALSE)
-  Hint: Use next_purchase ~ sent_coupon + gender | assigned_coupon + gender as the formula inside of iv_robust.
+   Type help(feols) to see the syntax for two-stage least squares in feols.
+  CorrectAnswer: help(feols)
+  AnswerTests: omnitest(correctExpr='help(feols)')
 
 - Class: cmd_question
   Output: |-
-   Use export_summs to look at models 1, 2, 3, and 4 and see what our various calculations got us (keeping in mind we never implemented an attrition fix).
+   Now, use two-stage least squares to adjust the effect of sent_coupon using how effective assigned_coupon was at actually increasing received-coupon rates.
+   
+   We can do this with feols from the fixest package instead of lm.
+   
+   The syntax for running two-stage least squares with feols starts with a typical regression of the outcome on any control variables (other than treatment), i.e. Y ~ W. Then we add a bar | and then give a second formula specifying a regression of our treatment on our instrument X ~ Z. e.g. Y ~ W | X ~ Z if X is received-treatment and Z is assigned-treatment.
+   
+   Perform this regression, adding se = 'hetero' for robust SEs (robust = TRUE won't work in this case for this regression, although it will still work for the others), and save it as model4.
+  CorrectAnswer: model4 <- feols(next_purchase ~ gender | sent_coupon ~ assigned_coupon, data = df, se = 'hetero')
+  AnswerTests: ifelse(exists('model4'),cor(model4$fitted.values, feols(next_purchase ~ gender | sent_coupon ~ assigned_coupon, data = df, se = 'hetero')$fitted.values)> .99, FALSE)
+  Hint: Use next_purchase ~ gender | sent_coupon ~ assigned_coupon as the formula inside of feols. Don't forget se = 'hetero'.
+
+- Class: cmd_question
+  Output: |-
+   Use export_summs to look at models 1, 2, 3, and 4 and see what our various calculations got us (keeping in mind we never implemented an attrition fix). Keep the robust = TRUE option.
    
    For the record, the "true" effect of treatment was 20.
-  CorrectAnswer: export_summs(model1,model2,model3,model4)
-  AnswerTests: omnitest(correctExpr='export_summs(model1,model2,model3,model4)')
-  Hint: Just pass model1, model2, model3, and model4 to export_summs
+  CorrectAnswer: export_summs(model1,model2,model3,model4, robust = TRUE)
+  AnswerTests: omnitest(correctExpr='export_summs(model1,model2,model3,model4, robust = TRUE)')
+  Hint: Just pass model1, model2, model3, and model4 to export_summs, including robust = TRUE.

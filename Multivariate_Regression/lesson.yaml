@@ -199,4 +199,4 @@
   Output: Use export_summs() to look at the result of final and see how close your coefficient on X got to the true value of 1. Then that's it!
   CorrectAnswer: export_summs(final)
   AnswerTests: omnitest(correctExpr='export_summs(final)')
-  Hint: Just give final to export_summs()
+  Hint: Just give final to export_summs().

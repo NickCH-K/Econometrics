@@ -36,11 +36,10 @@
    
    Copy-paste this in:
    
-   # Make sure everyone gets the same random data with set.seed
-   # then create the data with tibble() and mutate()
-   
+   # create the data with tibble() and mutate()
    df <- tibble(X = runif(300)) %>% mutate(Y = 5 + 3*X + rnorm(300))
   CorrectAnswer: |-
+   set.seed(1000)
    df <- tibble(X = runif(300)) %>% mutate(Y = 5 + 3*X + rnorm(300))
   AnswerTests: ifelse(exists('df'),identical(names(df),c('X','Y')),FALSE)
   Hint: Copy-paste in all the code.
@@ -146,7 +145,7 @@
   Hint: Take your z-score code from before, (beta1-3)/se_beta1, and use that to replace the z in the original code.
 
 - Class: cmd_question
-  Output: So then, keeping mind that this is a two-tailed test so we want the proportion as far away from the null as your z-score on *both sides*, what is the p-value of this test?
+  Output: So then, keeping mind that this is a two-tailed test so we want the proportion as far away from the null as your z-score, or farther, on *both sides*, what is the p-value of this test?
   CorrectAnswer: 2*(1-pnorm(abs((beta1-3)/se_beta1)))
   AnswerTests: omnitest(correctVal=2*(1-pnorm(abs((beta1-3)/se_beta1))))
   Hint: To count the area on both sides, just multiply the code for your previous answer by 2.
@@ -163,9 +162,9 @@
 
 - Class: exact_question
   Output: |-
-   This swirl lesson uses randomly generated data.
+   This swirl lesson uses randomly generated data, so not everyone will get the same z-score or significance.
    
-   What proportion of people who use this swirl lesson reject the null of beta1 = 3, even though it's true?
+   What proportion of people who use this swirl lesson will reject the null of beta1 = 3, even though it's true?
    
    (put your answer as a decimal, i.e. .4 instead of 40%)
   CorrectAnswer: .05
@@ -200,7 +199,7 @@
    Let's see if how far east you are relates to wind speed of a storm.
    
    Regress wind on longitude and store the result as wind_reg
-  CorrectAnswer: wind_reg <- lm(wind~long, data =storms)
+  CorrectAnswer: wind_reg <- lm(wind~long, data = storms)
   AnswerTests: ifelse(exists('wind_reg'),identical(predict(wind_reg),predict(lm(wind~long, data =storms))),FALSE)
   Hint: C'mon, you know how to run a regression at this point. Then, store it as wind_reg.
 
@@ -251,7 +250,10 @@
   Hint: Make the first argument wind_reg and the second 'long = 5'.
 
 - Class: cmd_question
-  Output: What if we have heteroskedasticity? Test whether the coefficient on longitude is equal to 5 again, but this time set white.adjust = TRUE to use robust standard errors for the test.
+  Output: |-
+   What if we have heteroskedasticity? Test whether the coefficient on longitude is equal to 5 again, but this time set white.adjust = TRUE to use robust standard errors for the test.
+   
+   Importantly, white.adjust only gives robust standard errors *in the linearHypothesis() function*. If you want robust SEs in a regression, you'd use robust = TRUE in export_summs(), as we did last time.  
   CorrectAnswer: linearHypothesis(wind_reg, 'long = 5', white.adjust)
   AnswerTests: omnitest(correctVal="linearHypothesis(wind_reg, 'long = 0', white.adjust = TRUE)")
   Hint: Make the first argument wind_reg and the second 'long = 0'. Then the third is white.adjust = TRUE.

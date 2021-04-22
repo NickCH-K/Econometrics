@@ -152,7 +152,7 @@
    
    where Y is the dependent variable and X is the independent variable.
    
-   Create a formula where mpg is the dependent variable and hp is the independent variable.
+   Create a formula where mpg is the dependent variable and hp is the independent variable. Put it in quotes for now.
   CorrectAnswer: "'mpg ~ hp'"
   AnswerTests: any_of_exprs('mpg~hp','mpg ~ hp','mpg~ hp','mpg ~hp')
   Hint: Just rewrite Y ~ X but with mpg in place of Y and hp in place of X. Then put it in quotes.
@@ -161,7 +161,7 @@
   Output: |-
    Now we can put that formula into the lm() function to run a regression.
    
-   Use the lm() function. Put the mpg ~ hp formula in there first.
+   Use the lm() function. Put the mpg ~ hp formula in there first (without quotes).
    
    Then, specify data = mtcars, since you're using the mtcars data set.
   CorrectAnswer: lm(mpg~hp, data = mtcars)

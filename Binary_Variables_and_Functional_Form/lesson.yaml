@@ -220,7 +220,7 @@
 
 - Class: mult_question
   Output: |-
-     What if we had insteat run the regression
+     What if we had instead run the regression
      
      lm(male ~ log(extraversion), data = Cowles)
      

@@ -15,7 +15,7 @@
    
    This lesson will work through examples of the difference-in-differences (DiD) method.
    
-   Before starting, you should have the **tidyverse**, **haven**, **vtable**, **jtools**, **gtrendsR*, and **lubridate** packages installed. Please exit now and install these packages if you do not have them.
+   Before starting, you should have the **tidyverse**, **haven**, **vtable**, **jtools**, **gtrendsR*, and **lubridate** packages installed. Please exit now to install these packages if you do not have them.
 
 
 - Class: text
