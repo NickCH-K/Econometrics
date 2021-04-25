@@ -62,7 +62,7 @@
    Use help(power.t.test) to look at how to use this function.
   CorrectAnswer: help(power.t.test)
   AnswerTests: omnitest(correctExpr='help(power.t.test)')
-  Hint: Just type power.t.test
+  Hint: Just type help(power.t.test)
 
 - Class: cmd_question
   Output: |-

@@ -151,7 +151,7 @@
    Save the result as iv1.
   CorrectAnswer: iv1 <- feols(log(packs) ~ 1 | log(rprice) ~ taxdiff, data = CigarettesSW)
   AnswerTests: ifelse(exists('iv1'),cor(iv1$fitted.values, feols(log(packs) ~ 1 | log(rprice) ~ taxdiff, data = CigarettesSW)$fitted.values) > .99, FALSE)
-  Hint: Use feols with two parts to the formula: log(packs) regressed on 1 in the first, and log(rprice) regressed on taxdiff in the second.
+  Hint: Use feols with two parts to the formula- log(packs) regressed on 1 in the first, and log(rprice) regressed on taxdiff in the second.
 
 - Class: cmd_question
   Output: Use export_summs() to look at ols and iv1 together. Note that feols will rename the endogenous variable to start with "fit_", reminding you that it is using the fitted/predicted values from that first stage.
