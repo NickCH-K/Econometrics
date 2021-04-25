@@ -211,7 +211,7 @@
 - Class: cmd_question
   Output: This time, let's find the first-stage F statistic in a different way. Send your iv2 model to the fitstat function, with the type = 'ivf' option. fitstat is a flexible function that will help us get other statistics from our model, too.
   CorrectAnswer: fitstat(iv2, type = 'ivf')
-  AnswerTests: omnitest(correctVal='fitstat(iv2, type = 'ivf')')
+  AnswerTests: omnitest(correctVal='fitstat(iv2, type = "ivf")')
   Hint: Call the fitstat() function with the first argument of iv2 and the second argument of type = 'ivf'.
 
 - Class: mult_question
