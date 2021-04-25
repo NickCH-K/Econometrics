@@ -222,7 +222,7 @@
   Hint: A common rule of thumb is that a first-stage F-statistic (which is what this diagnostic F-statistic is) of less than 10  raises weak instrument concerns (although using a rule of thumb in general for this is not ideal).
 
 - Class: cmd_question
-  Output: Type help(fitstat) and look for the correct type argument that will give you an overidentification test (hint: use find-in-page and search for "overid")
+  Output: Type help(fitstat) and look for the correct type argument that will give you an overidentification test (hint- use find-in-page and search for "overid")
   CorrectAnswer: help(fitstat)
   AnswerTests: omnitest(correctExpr='help(fitstat)')
   Hint: Look through those docs! Always look through those docs.
