@@ -230,7 +230,7 @@
 - Class: cmd_question
   Output: Use fitstat to find the results of the overidentification test.
   CorrectAnswer: fitstat(iv2, 'sargan')
-  AnswerTests: omnitest(correctVal='fitstat(iv2, 'sargan')')
+  AnswerTests: omnitest(correctVal='fitstat(iv2, "sargan")')
   Hint: Call the fitstat() function with the first argument of iv2 and the second argument of type = 'sargan'.
 
 - Class: mult_question
