@@ -190,7 +190,7 @@
    
    Create mathpnl_dm with de-meaned math4, expp, and lunch, called math4_dm, expp_dm, and lunch_dm, respectively.
   CorrectAnswer: mathpnl_dm <- mathpnl %>% group_by(distid) %>% mutate(math4_dm = math4 - mean(math4), expp_dm = expp - mean(expp), lunch_dm = lunch - mean(lunch))
-  AnswerTests: ifelse(exists('mathpnl_dm'),cor(mathpnl_dm[['math4_dm']],mathpnl %>% group_by(distid) %>% mutate(x = math4 - mean(math4)) %>% pull(x)) > .99 & cor(mathpnl_dm[['expp_dm']], mathpnl %>% group_by(distid) %>% mutate(x = expp - mean(expp)) %>% pull(x)) > .99 &  cor(mathpnl_dm[['lunch_dm']], mathpnl %>% group_by(distid) %>% mutate(x = lunch - mean(lunch)) %>% pull(x)) > .99, FALSE)
+  AnswerTests: ifelse(exists('mathpnl_dm'),ifelse(!is.null(mathpnl_dm[['math4_dm']]) & !is.null(mathpnl_dm[['expp_dm']]) & !is.null(mathpnl_dm[['lunch_dm']]),cor(mathpnl_dm[['math4_dm']],mathpnl %>% group_by(distid) %>% mutate(x = math4 - mean(math4)) %>% pull(x)) > .99 & cor(mathpnl_dm[['expp_dm']], mathpnl %>% group_by(distid) %>% mutate(x = expp - mean(expp)) %>% pull(x)) > .99 &  cor(mathpnl_dm[['lunch_dm']], mathpnl %>% group_by(distid) %>% mutate(x = lunch - mean(lunch)) %>% pull(x)) > .99, FALSE),FALSE)
   Hint: Take the provided code and replace x with math4, y with expp, and make a similar line for lunch.
 
 - Class: text
