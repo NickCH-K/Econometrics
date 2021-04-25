@@ -236,7 +236,7 @@
 
 - Class: cmd_question
   Output: |- 
-   Use linearHypothesis() from **car** to test whether the coefficient on longitue is 0.
+   Use linearHypothesis() from **car** to test whether the coefficient on longitude is 0.
    
    The first argument in linearHypothesis is the regression object. The second is a string description of the test you want to run, for example 'X = 2' would test whether the coefficient on X is equal to 2.
   CorrectAnswer: linearHypothesis(wind_reg, 'long = 0')

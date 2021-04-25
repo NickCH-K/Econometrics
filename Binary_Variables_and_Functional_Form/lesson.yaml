@@ -183,7 +183,7 @@
   Output: |- 
    Let's test whether extraversion has any predictive power at all.
    
-   Use linearHypothesis() to test whether all of the extraversion coefficients are jointly zero.
+   Use linearHypothesis() to test whether all of the extraversion coefficients are jointly zero. Be sure to include spaces around the = signs or else swirl has a hard time recognizing it.
   CorrectAnswer: linearHypothesis(m2, c("extraversion = 0","I(extraversion^2) = 0"))
   AnswerTests: omnitest(correctExpr='linearHypothesis(m2, c("extraversion = 0","I(extraversion^2) = 0"))')
   Hint: linearHypothesis takes as its first argument the model. Then give it a vector (c()) of the tests you want to perform jointly.

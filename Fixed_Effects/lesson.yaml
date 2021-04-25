@@ -1,5 +1,4 @@
 - Class: meta
-- Class: meta
   Course: Econometrics
   Lesson: Fixed Effects
   Author: Nick Huntington-Klein
@@ -14,7 +13,6 @@
    This lesson will make use of the **tidyverse**, **vtable**, **car**, **jtools**, **fixest**, and **wooldridge** packages.
    
    If you don't have these, exit out of this lesson with bye(), install the packages with
-   
    install.packages(c('tidyverse','vtable','car','jtools','wooldridge','fixest'),dependencies = TRUE)
    
    And then come back in with swirl()
