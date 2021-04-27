@@ -129,7 +129,7 @@
   Output: Use export_summs() with robust = TRUE to look at the result.
   CorrectAnswer: export_summs(lpm, robust = TRUE)
   AnswerTests: omnitest(correctExpr='export_summs(lpm, robust = TRUE)')
-  Hint: Send lpm to export_summs()
+  Hint: Send lpm to export_summs() with the robust = TRUE option.
 
 
 - Class: figure
