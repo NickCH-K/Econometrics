@@ -128,7 +128,7 @@
    
    So use <- or = to save the data as df.
   CorrectAnswer: df <- read_csv('https://vincentarelbundock.github.io/Rdatasets/csv/Ecdat/USFinanceIndustry.csv')
-  AnswerTests: identical(df,suppressMessages(suppressWarnings(read_csv('https://vincentarelbundock.github.io/Rdatasets/csv/Ecdat/USFinanceIndustry.csv'))))
+  AnswerTests: min(names(df)  == names(suppressMessages(suppressWarnings(read_csv('https://vincentarelbundock.github.io/Rdatasets/csv/Ecdat/USFinanceIndustry.csv'))))) == 1
   Hint: |- 
    We know we can store objects using the format
    
