@@ -22,15 +22,17 @@
 
 - Class: text
   Output: |-
-   For this lesson you will need the packages **tidyverse**, **Ecdat**, **jtools**, **huxtable**, and **vtable**
+   For this lesson you will need the packages **tidyverse**, **Ecdat**, **jtools**, **huxtable**, **sandwich** and **vtable**
    
-   If you don't have these, you'll need to install them. You can Escape or bye() out of this, install them with install.packages(c('tidyverse','Ecdat','jtools','huxtable','vtable')), and then swirl() to get back in.
+   If you don't have these, you'll need to install them. You can Escape or bye() out of this, install them with install.packages(c('tidyverse','Ecdat','jtools','huxtable', 'sandwich', 'vtable')), and then swirl() to get back in.
    
    If you've already done Ordinary Least Squares Part 1, the only one you might not still have is Ecdat. You can install that with install.packages('Ecdat')
 
 - Class: cmd_question
   Output: |-
-   Next let's load our libraries. You can just copy/paste the text below, or type skip() and all the libraries will be loaded.
+   Next let's load our libraries (notice we're not loading "sandwich" - we need this package to be *installed*, since jtools uses it on the back-end, but we're not using it directly ourselves so we don't have to load it). 
+   
+   You can just copy/paste the text below, or type skip() and all the libraries will be loaded.
 
    library(tidyverse)
    

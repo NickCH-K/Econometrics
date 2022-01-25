@@ -152,7 +152,7 @@
   Hint: use plot_coefs like you just used export_summs() with two models.
 
 - Class: cmd_question
-  Output: use linearHypothesis() to test whether Age = 0 AND HHIncomeMid = 0. (Note: when writing the code be sure to put a space on either side of the = sign. Otherwise swirl has a hard time recognizing it).
+  Output: use linearHypothesis() to test whether Age = 0 AND HHIncomeMid = 0. (Note - when writing the code be sure to put a space on either side of the = sign. Otherwise swirl has a hard time recognizing it).
   CorrectAnswer: linearHypothesis(multi2, c('Age = 0','HHIncomeMid = 0'))
   AnswerTests: omnitest(correctExpr="linearHypothesis(multi2, c('Age = 0','HHIncomeMid = 0'))")
   Hint: The two restrictions should be passed as a string vector, like c('A = 0','B = 0').
