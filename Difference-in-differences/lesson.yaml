@@ -130,7 +130,7 @@
   
     Next, add a logical dummy variable to trends_time named post_treatment equal to TRUE when date is greater than or equal to 2020-03-18, the first state lockdown order
   
-    Note: you should use as.Date("2020-03-18") so that R knows you are working with a date value.
+    Note - you should use as.Date("2020-03-18") so that R knows you are working with a date value.
   CorrectAnswer: trends_time <- trends_time %>% mutate(post_treatment = date >= as.Date("2020-03-18"))
   AnswerTests: cor(trends_time[['post_treatment']], trends_time[['date']] >= as.Date("2020-03-18")) > .99
   Hint: Your mutate code should read mutate(post_treatment = date >= as.Date("2020-03-18"))

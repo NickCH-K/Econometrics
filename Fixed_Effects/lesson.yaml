@@ -241,7 +241,7 @@
    
    to see if you can reject that the intercept is the same for all districts.
    
-   NOTE: Mac computers seem to have difficulty processing this giant test. If you're using a mac, just answer 'mac' with the quotes to go to the next question.
+   NOTE - Mac computers seem to have difficulty processing this giant test. If you're using a mac, just answer 'mac' with the quotes to go to the next question.
   CorrectAnswer: linearHypothesis(fe_lsdv, matchCoefs(fe_lsdv, "distid"))
   AnswerTests: any_of_exprs('linearHypothesis(fe_lsdv, matchCoefs(fe_lsdv, "distid"))','"mac"')
   Hint: Just copy/paste the code.
