@@ -118,7 +118,7 @@
 
 - Class: cmd_question
   Output: |-
-   Okay! Now use lm() from estimatr to regress surv_TF on the other variables in the data.
+   Okay! Now use lm() to regress surv_TF on the other variables in the data.
    
    Save the result as lpm
   CorrectAnswer: lpm <- lm(surv_TF ~ sex + age + passengerClass, data = TitanicSurvival)

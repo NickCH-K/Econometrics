@@ -10,11 +10,11 @@
   Output: |-
    This lesson will cover hypothesis testing, both in concept and how to do it in R.
    
-   Before starting, you will want to be sure that the packages tidyverse, jtools, ggstance, vtable, and car are all installed.
+   Before starting, you will want to be sure that the packages tidyverse, fixest, ggstance, vtable, and multcomp are all installed.
    
    If they're not, you can Escape out of here, install them with
    
-   install.packages(c('tidyverse','jtools','ggstance','vtable','car'))
+   install.packages(c('tidyverse','fixest','ggstance','vtable','multcomp'))
    
    And then type swirl() to come back in.
 
@@ -25,10 +25,10 @@
   Hint: Just put library(tidyverse). If that doesn't work, maybe it's not installed?
 
 - Class: cmd_question
-  Output: Load in jtools with library(jtools)  
-  CorrectAnswer: library(jtools)
-  AnswerTests: omnitest(correctExpr='library(jtools)')
-  Hint: Just put library(jtools). If that doesn't work, maybe it's not installed?
+  Output: Load in fixest with library(fixest)  
+  CorrectAnswer: library(fixest)
+  AnswerTests: omnitest(correctExpr='library(fixest)')
+  Hint: Just put library(fixest). If that doesn't work, maybe it's not installed?
 
 - Class: cmd_question
   Output: |-
@@ -61,35 +61,33 @@
    Y = beta0 + beta1*X + error
 
 - Class: cmd_question
-  Output: Run a regression of Y on X using your data df (which is just a single sample generated using the true DGP) and store the result as one_samp
-  CorrectAnswer: one_samp <- lm(Y~X, data = df)
-  AnswerTests: ifelse(exists('one_samp'),identical(predict(one_samp),predict(lm(Y~X, data = df))),FALSE)
-  Hint: Use lm() to run a regression of Y on X, with data = df, and store the result using <- as one_samp
+  Output: Use feols() to run a regression of Y on X using your data df (which is just a single sample generated using the true DGP) and store the result as one_samp
+  CorrectAnswer: one_samp <- feols(Y~X, data = df)
+  AnswerTests: ifelse(exists('one_samp'),(class(one_samp) == 'fixest') & identical(predict(one_samp),predict(feols(Y~X, data = df))),FALSE)
+  Hint: Use feols() (not lm()) to run a regression of Y on X, with data = df, and store the result using <- as one_samp
 
 - Class: cmd_question
   Output: |-
    You can get just the named vector of coefficients out of a regression object using the coef() function.
    
-   The first element of the named vector is the intercept. The second will be the coefficient on X. Store the coefficient on X as beta1:
+   You can then get the specific coefficient you want using [['variablename']] . Store the coefficient on X as beta1:
    
-   beta1 <- coef(one_samp)[[2]]
+   beta1 <- coef(one_samp)[['X']]
    
    (usually for a vector you'd just need single brackets [] but we want to get rid of that name)
-  CorrectAnswer: beta1 <- coef(one_samp)[[2]]
-  AnswerTests: ifelse(exists('beta1'),identical(beta1,coef(one_samp)[[2]]),FALSE)
-  Hint: Just copy in beta1 <- coef(one_samp)[[2]]
+  CorrectAnswer: beta1 <- coef(one_samp)[['X']]
+  AnswerTests: ifelse(exists('beta1'),identical(beta1,beta1 <- coef(one_samp)[['X']]),FALSE)
+  Hint: Just copy in beta1 <- coef(one_samp)[['X']]
 
 - Class: cmd_question
   Output: |- 
-   You can get just the vector of standard errors from a regression with summary()$coefficients[,2].
-   
-   The first element of that vector is the standard error of the intercept. The second is the standard error of the coefficient on X.
-   
+   You can get just the vector of standard errors from a feols regression with model$se, and get the standard error for the specific coefficient you want with the same [['variablename']] method we just used for the coefficient.
+
    Use this code to get the standard error of beta1 and store it:
    
-   se_beta1 <- summary(one_samp)$coefficients[,2][[2]]
-  CorrectAnswer: se_beta1 <- summary(one_samp)$coefficients[,2][[2]]
-  AnswerTests: ifelse(exists('se_beta1'),identical(se_beta1,summary(one_samp)$coefficients[,2][[2]]),FALSE)
+   se_beta1 <- one_samp$se[['X']]
+  CorrectAnswer: se_beta1 <- one_samp$se[['X']]
+  AnswerTests: ifelse(exists('se_beta1'),identical(se_beta1,se_beta1 <- one_samp$se[['X']]),FALSE)
   Hint: Copy in the code
 
 
@@ -124,7 +122,7 @@
   Output: |-
    In a moment we're going to calculate the proportion of the standard normal distribution that is to the right of the *absolute value* of your z-score.
    
-   In order to reject the null at the 95% confidence level with a *two-sided* test, this proportion needs to be below...
+   In order to reject the null at the 95% confidence level with a *two-sided* test, or in other words to get a p-value of .05 or less, this proportion needs to be below...
    
    (put your answer as a decimal, i.e. .4 instead of 40%)
   CorrectAnswer: .025
@@ -198,62 +196,65 @@
   Output: |- 
    Let's see if how far east you are relates to wind speed of a storm.
    
-   Regress wind on longitude and store the result as wind_reg
-  CorrectAnswer: wind_reg <- lm(wind~long, data = storms)
-  AnswerTests: ifelse(exists('wind_reg'),identical(predict(wind_reg),predict(lm(wind~long, data =storms))),FALSE)
+   Use feols() to regress wind on longitude and store the result as wind_reg
+  CorrectAnswer: wind_reg <- feols(wind~long, data = storms)
+  AnswerTests: ifelse(exists('wind_reg'),(class(wind_reg) == 'fixest') & identical(predict(wind_reg),predict(feols(wind~long, data =storms))),FALSE)
   Hint: C'mon, you know how to run a regression at this point. Then, store it as wind_reg.
 
 - Class: cmd_question
-  Output: Use export_summs() to look at the regression. Add a digits = 3 option so you can look in a little more detail.
-  CorrectAnswer: export_summs(wind_reg, digits = 3)
-  AnswerTests: omnitest(correctExpr = 'export_summs(wind_reg, digits = 3)')
-  Hint: Type export_summs(wind_reg, digits = 3)
+  Output: Use etable() to look at the regression.
+  CorrectAnswer: etable(wind_reg)
+  AnswerTests: omnitest(correctExpr = 'etable(wind_reg)')
+  Hint: Type etable(wind_reg)
 
 - Class: mult_question
   Output: What is the standard error on the coefficient on longitude?
-  AnswerChoices: 53.902; 0.898; 0.006; 0.013; 10010; 0.000
-  CorrectAnswer: 0.013
-  AnswerTests: omnitest(correctVal='0.013')
-  Hint: Standard errors in an export_summs() table are shown in parentheses underneath the coefficients.
+  AnswerChoices: 53.90; 0.8984; 0.0063; 0.0134; 10010; 2.24e-5
+  CorrectAnswer: 0.0134
+  AnswerTests: omnitest(correctVal='0.0134')
+  Hint: Standard errors in an etable() table are shown in parentheses to the right of the coefficients.
 
 - Class: cmd_question
-  Output: Use plot_coefs() to look at the 95% confidence interval of the coefficient on longitude.
-  CorrectAnswer: plot_coefs(wind_reg)
-  AnswerTests: expr_uses_func('plot_coefs')
-  Hint: Take your regression wind_reg and give it to plot_coefs as its first argument.
+  Output: Use coefplot() to look at the 95% confidence interval of the coefficient on longitude (called long in the regression). Use the keep option to only look at the longitude coefficient, not the intercept.
+  CorrectAnswer: coefplot(wind_reg, keep = 'long')
+  AnswerTests: omnitest(correctExpr = "coefplot(wind_reg, keep = 'long')"")
+  Hint: Take your regression wind_reg and give it to coefplot as its first argument. Then add a keep option set to long, with quotes around long.
 
 - Class: exact_question
-  Output: The asterisks indicate whether the p-value on a test of the coefficient is below a certain value. Based on the three stars next to the Intercept, we can reject that the intercept is equal to the null value of... what?
+  Output: The asterisks indicate whether the p-value on a test of the coefficient is below a certain value. Based on the three stars next to the Intercept, we can reject at the 99% level that the intercept is equal to the null value of... what?
   CorrectAnswer: 0
   AnswerTests: omnitest(correctVal=0)
   Hint: Regression tables by default compare their coefficients to 0.
 
 - Class: cmd_question
-  Output: Load the car library using library(car) 
-  CorrectAnswer: library(car)
-  AnswerTests: omnitest(correctExpr='library(car)')
+  Output: |- 
+   Use wald() from fixest to test whether the coefficient on longitude is 0.
+   
+   The first argument in wald is the regression object. The second is a string vector of the names of the variables you want to compare to 0.
+  CorrectAnswer: wald(wind_reg, 'long')
+  AnswerTests: omnitest(correctVal="wald(wind_reg, 'long')")
+  Hint: Make the first argument wind_reg and the second 'long'.
+
+- Class: cmd_question
+  Output: Load the multcomp library using library(multcomp) 
+  CorrectAnswer: library(multcomp)
+  AnswerTests: omnitest(correctExpr='library(multcomp)')
   Hint: Type library(car)
 
 - Class: cmd_question
-  Output: |- 
-   Use linearHypothesis() from **car** to test whether the coefficient on longitude is 0.
+  Output: |-
+   Now use glht() from multcomp to test whether the coefficient on longitude is equal to 5. Now, instead of just listing the variable name in the second argument, write your null hypothesis, for example X = 10 would test the null that the coefficient on X is equal to 10.
    
-   The first argument in linearHypothesis is the regression object. The second is a string description of the test you want to run, for example 'X = 2' would test whether the coefficient on X is equal to 2.
-  CorrectAnswer: linearHypothesis(wind_reg, 'long = 0')
-  AnswerTests: omnitest(correctVal="linearHypothesis(wind_reg, 'long = 0')")
-  Hint: Make the first argument wind_reg and the second 'long = 0'.
-
-- Class: cmd_question
-  Output: Now use linearHypothesis to test whether the coefficient on longitude is equal to 5.
-  CorrectAnswer: linearHypothesis(wind_reg, 'long = 5')
-  AnswerTests: omnitest(correctVal="linearHypothesis(wind_reg, 'long = 5')")
-  Hint: Make the first argument wind_reg and the second 'long = 5'.
+   You'll also need to pass glht to summary(). A good format for doing all of this would look like:
+   
+   mymodel %>% glht('X = 10') %>% summary()
+  CorrectAnswer: wind_reg %>% glht('long = 5') %>% summary()
+  AnswerTests: omnitest(correctVal="wind_reg %>% glht('long = 5') %>% summary()")
+  Hint: Take wind_reg, pass that with a pipe to glht with the argument 'long = 5', then pass that through another pipe to summary().
 
 - Class: cmd_question
   Output: |-
-   What if we have heteroskedasticity? Test whether the coefficient on longitude is equal to 5 again, but this time set white.adjust = TRUE to use robust standard errors for the test.
-   
-   Importantly, white.adjust only gives robust standard errors *in the linearHypothesis() function*. If you want robust SEs in a regression, you'd use robust = TRUE in export_summs(), as we did last time.  
-  CorrectAnswer: linearHypothesis(wind_reg, 'long = 5', white.adjust)
-  AnswerTests: omnitest(correctVal="linearHypothesis(wind_reg, 'long = 0', white.adjust = TRUE)")
-  Hint: Make the first argument wind_reg and the second 'long = 0'. Then the third is white.adjust = TRUE.
+   What if we have heteroskedasticity? Rerun your code from the previous step, but instead of sending wind_reg directly, take your wind_reg code feols(wind~long, data = storms) and add a vcov = 'hetero' option to estimate heteroskedasticity-robust standard errors.
+  CorrectAnswer: feols(wind~long, data = storms, vcov = 'hetero') %>% glht('long = 5') %>% summary()
+  AnswerTests: omnitest(correctVal="feols(wind~long, data = storms, vcov = 'hetero') %>% glht('long = 5') %>% summary()")
+  Hint: Copy/paste your answer from the previous step. Then replace wind_reg with feols(wind~long, data = storms). Then, after data = storms, add vcov = 'hetero'.

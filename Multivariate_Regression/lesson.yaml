@@ -10,11 +10,11 @@
   Output: |-
    This Swirl lesson will cover the addition of control variables to regressions, as well as how to work with multivariate regression.
    
-   This lesson will make use of the **tidyverse**, **NHANES**, **car**, and **jtools** packages.
+   This lesson will make use of the **tidyverse**, **NHANES**, and **fixest** packages.
    
    If you don't have these, exit out of this lesson with bye(), install the packages with
    
-   install.packages(c('tidyverse','NHANES','car','jtools'),dependencies = TRUE)
+   install.packages(c('tidyverse','NHANES','fixest'),dependencies = TRUE)
    
    And then come back in with swirl()
 
@@ -31,16 +31,10 @@
   Hint: Just type library(NHANES)
 
 - Class: cmd_question
-  Output: Now load the jtools package.
-  CorrectAnswer: library(jtools)
-  AnswerTests: omnitest(correctExpr='library(jtools)')
-  Hint: Just type library(jtools)
-
-- Class: cmd_question
-  Output: Now load the car package.
-  CorrectAnswer: library(car)
-  AnswerTests: omnitest(correctExpr='library(car)')
-  Hint: Just type library(car)
+  Output: Now load the fixest package.
+  CorrectAnswer: library(fixest)
+  AnswerTests: omnitest(correctExpr='library(fixest)')
+  Hint: Just type library(fixest)
 
 - Class: cmd_question
   Output: |-
@@ -68,7 +62,7 @@
   Output: |-
    We are interested in the effect of poor sleep on your physical health.
    
-   Run a regression of
+   Use feols() to run a regression of
    
    *the self-reported number of days the participant's physical health was not good out of the past 30 days*
    
@@ -77,15 +71,15 @@
    *The self-reported number of hours of sleep the participant usually gets at night.*
    
    Since this is a bivariate (two-variable) regression, store the regression as biv
-  CorrectAnswer: biv <- lm(DaysPhysHlthBad~SleepHrsNight, data = NHANES)
-  AnswerTests: ifelse(exists('biv'),identical(predict(biv),predict(lm(DaysPhysHlthBad~SleepHrsNight, data = NHANES))),FALSE)
-  Hint: Use lm() to run a regression in the NHANES data, with DaysPhysHlthBad as the dependent variable and SleepHrsNight as the independent variable.
+  CorrectAnswer: biv <- feols(DaysPhysHlthBad~SleepHrsNight, data = NHANES)
+  AnswerTests: ifelse(exists('biv'),class(biv) == 'fixest' & identical(predict(biv),predict(feols(DaysPhysHlthBad~SleepHrsNight, data = NHANES))),FALSE)
+  Hint: Use feols() to run a regression in the NHANES data, with DaysPhysHlthBad as the dependent variable and SleepHrsNight as the independent variable.
 
 - Class: cmd_question
-  Output: Use export_summs() to look at the regression results.  
-  CorrectAnswer: export_summs(biv)
-  AnswerTests: expr_uses_func('export_summs')
-  Hint: Pass the biv regression object to export_summs()
+  Output: Use etable() to look at the regression results.  
+  CorrectAnswer: etable(biv)
+  AnswerTests: expr_uses_func('etable')
+  Hint: Pass the biv regression object to etable()
 
 - Class: mult_question
   Output: How can we interpret that -.51 in the table?
@@ -102,10 +96,10 @@
    
    If the answer is yes, it might need to be in the model!
    
-   Find three variables you think should be added to the model (there are many right answers). Then, regress days of bad health on hours of sleep AND your three variables. Store the result as multi1.
-  CorrectAnswer: multi1 <- lm(DaysPhysHlthBad~SleepHrsNight + Diabetes + Depressed + Age, data = NHANES)
-  AnswerTests: ifelse(exists('multi1'),names(attr(multi1$terms,'dataClasses'))[1] == 'DaysPhysHlthBad' & 'SleepHrsNight' %in% names(attr(multi1$terms,'dataClasses')) & length(names(attr(multi1$terms,'dataClasses'))) >= 4, FALSE)
-  Hint: You can regress Y on X, W, and Z using lm(Y~X+W+Z)
+   Find three variables you think should be added to the model (there are many right answers). Then, use feols() to regress days of bad health on hours of sleep AND your three variables. Store the result as multi1.
+  CorrectAnswer: multi1 <- feols(DaysPhysHlthBad~SleepHrsNight + Diabetes + Depressed + Age, data = NHANES)
+  AnswerTests: ifelse(exists('multi1'),class(multi1) == 'fixest' & length(names(coef(multi1))) >= 5 & 'DaysPhysHlthBad' %in% names(coef(multi1)) , FALSE)
+  Hint: You can regress Y on X, W, and Z using feols(Y~X+W+Z). Don't forget to add at least three other controls!
 
 - Class: figure
   Output: Consider this diagram of the data-generating process. This diagram shows which variables are relevant to generating the obseved sleep and bad-health values, and how they cause each other, represented by arrows.
@@ -117,8 +111,8 @@
    Assume that the diagram is completely accurate and isn't missing anything.
    
    Run a regression of DaysPhysHlthBad on SleepHrsNight and all the controls necessary to causally identify the effect of SleepHrsNight on DaysPhysHlthBad. Don't include any unnecessary controls! Save this regression as multi2.
-  CorrectAnswer: multi2 <- lm(DaysPhysHlthBad ~ SleepHrsNight + Age + HHIncomeMid + Depressed + TVHrsDay, data = NHANES)
-  AnswerTests: ifelse(exists('multi2'),ifelse(length(predict(multi2)) == length(predict(lm(DaysPhysHlthBad ~ SleepHrsNight + Age + HHIncomeMid + Depressed + TVHrsDay, data = NHANES))), 1 - cor(predict(multi2),predict(lm(DaysPhysHlthBad ~ SleepHrsNight + Age + HHIncomeMid + Depressed + TVHrsDay, data = NHANES))) < .0001,FALSE), FALSE)
+  CorrectAnswer: multi2 <- feols(DaysPhysHlthBad ~ SleepHrsNight + Age + HHIncomeMid + Depressed + TVHrsDay, data = NHANES)
+  AnswerTests: ifelse(exists('multi2'),class(multi2) == 'fixest' & ifelse(length(predict(multi2)) == length(predict(feols(DaysPhysHlthBad ~ SleepHrsNight + Age + HHIncomeMid + Depressed + TVHrsDay, data = NHANES))), 1 - cor(predict(multi2),predict(feols(DaysPhysHlthBad ~ SleepHrsNight + Age + HHIncomeMid + Depressed + TVHrsDay, data = NHANES))) < .0001,FALSE), FALSE)
   Hint: |-
    You need to include the set of variables that closes all paths other than the ones you're interested in.
    
@@ -127,10 +121,10 @@
    Once you find a path like that, close the path by controlling for any variable along it.
 
 - Class: cmd_question
-  Output: Use export_summs() to look at biv and multi2 together. 
-  CorrectAnswer: export_summs(biv, multi2)
-  AnswerTests: omnitest(correctExpr='export_summs(biv, multi2)')
-  Hint: export_summs() can take as arguments each model you want to show, one after the other, separated by commas.
+  Output: Use etable() to look at biv and multi2 together. 
+  CorrectAnswer: etable(biv, multi2)
+  AnswerTests: omnitest(correctExpr='etable(biv, multi2)')
+  Hint: etable() can take as arguments each model you want to show, one after the other, separated by commas.
 
 - Class: mult_question
   Output: |-
@@ -146,16 +140,16 @@
    In effect, what we have left is as though those control variables were all set to the same value (no variation left!)
 
 - Class: cmd_question
-  Output: Use plot_coefs() to see all of the coefficients in both biv and multi2, and examine how much the coefficient on sleep hours is changed by adding the controls.
-  CorrectAnswer: plot_coefs(biv, multi2)
-  AnswerTests: omnitest(correctVal=plot_coefs(biv, multi2))
-  Hint: use plot_coefs like you just used export_summs() with two models.
+  Output: Use coefplot(list(model1,model2)) to see all of the coefficients in both biv and multi2, and examine how much the coefficient on sleep hours is changed by adding the controls.
+  CorrectAnswer: coefplot(list(biv, multi2))
+  AnswerTests: omnitest(correctVal=coefplot(list(biv, multi2)))
+  Hint: use coefplot(). In that coefplot(), put a list, like coefplot(list()). Then in that list, put biv and multi2.
 
 - Class: cmd_question
-  Output: use linearHypothesis() to test whether Age = 0 AND HHIncomeMid = 0. (Note - when writing the code be sure to put a space on either side of the = sign. Otherwise swirl has a hard time recognizing it).
-  CorrectAnswer: linearHypothesis(multi2, c('Age = 0','HHIncomeMid = 0'))
-  AnswerTests: omnitest(correctExpr="linearHypothesis(multi2, c('Age = 0','HHIncomeMid = 0'))")
-  Hint: The two restrictions should be passed as a string vector, like c('A = 0','B = 0').
+  Output: use wald() to test whether Age = 0 AND HHIncomeMid = 0. 
+  CorrectAnswer: wald(multi2, c('Age','HHIncomeMid'))
+  AnswerTests: omnitest(correctExpr="wald(multi2, c('Age','HHIncomeMid'))")
+  Hint: The two restrictions should be passed as a string vector of just the variable names, like c('A','B').
 
 - Class: mult_question
   Output: |-
@@ -171,14 +165,16 @@
   Output: |-
    As mentioned, the single TVHrsDay variable turned into MANY TVHrsDay variables - this is because it's a factor variable so it needs a different binary variable for each value it takes.
    
-   We'll talk more about that next time. For now, just be aware that you can do an F test of them jointly without having to type every single one of them out using matchCoefs()
+   We'll talk more about that next time. For now, just be aware that you can do an F test of them jointly without having to type every single one of them out using wald()
    
    Those TV variables don't seem to do much by themselves. But maybe together they're a strong effect? Put in:
    
-   linearHypothesis(multi2, matchCoefs(multi2, "TVHrsDay"))
-  CorrectAnswer: linearHypothesis(multi2, matchCoefs(multi2, "TVHrsDay"))
-  AnswerTests: omnitest(correctExpr='linearHypothesis(multi2, matchCoefs(multi2, "TVHrsDay"))')
-  Hint: Just put in linearHypothesis(multi2, matchCoefs(multi2, "TVHrsDay"))
+   wald(multi2, "TVHrsDay")
+   
+   This will test all variables for which their name contains the string "TVHrsDay"
+  CorrectAnswer: wald(multi2, "TVHrsDay")
+  AnswerTests: omnitest(correctExpr='wald(multi2, "TVHrsDay")')
+  Hint: Just put in wald(multi2, "TVHrsDay")
 
 - Class: cmd_question
   Output: |-
@@ -192,13 +188,13 @@
 
       mutate(Y = X + B + D + rnorm(100))
       
-   Run a regression of Y on X and any controls necessary to identify the effect of X on Y. Don't include any unnecessary controls! Store the result as final
-  CorrectAnswer: final <- lm(Y ~ X + D, data=example_dgp)
-  AnswerTests: ifelse(exists('final'), identical(predict(final),predict(lm(Y~X + D, data=example_dgp))),FALSE)
+   Use feols() to run a regression of Y on X and any controls necessary to identify the effect of X on Y. Don't include any unnecessary controls! Store the result as final
+  CorrectAnswer: final <- feols(Y ~ X + D, data=example_dgp)
+  AnswerTests: ifelse(exists('final'), class(final) == 'fixest' & identical(predict(final),predict(feols(Y~X + D, data=example_dgp))),FALSE)
   Hint: There are a lot of variables here but not a lot to control for! Think! Is this variable actually providing an alternate explanation?
 
 - Class: cmd_question
-  Output: Use export_summs() to look at the result of final and see how close your coefficient on X got to the true value of 1. Then that's it!
-  CorrectAnswer: export_summs(final)
-  AnswerTests: omnitest(correctExpr='export_summs(final)')
-  Hint: Just give final to export_summs().
+  Output: Use etable() to look at the result of final and see how close your coefficient on X got to the true value of 1. Then that's it!
+  CorrectAnswer: etable(final)
+  AnswerTests: omnitest(correctExpr='etable(final)')
+  Hint: Just give final to etable().
