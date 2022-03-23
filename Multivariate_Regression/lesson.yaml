@@ -98,7 +98,7 @@
    
    Find three variables you think should be added to the model (there are many right answers). Then, use feols() to regress days of bad health on hours of sleep AND your three variables. Store the result as multi1.
   CorrectAnswer: multi1 <- feols(DaysPhysHlthBad~SleepHrsNight + Diabetes + Depressed + Age, data = NHANES)
-  AnswerTests: ifelse(exists('multi1'),class(multi1) == 'fixest' & length(names(coef(multi1))) >= 5 & 'DaysPhysHlthBad' %in% names(coef(multi1)) , FALSE)
+  AnswerTests: ifelse(exists('multi1'),class(multi1) == 'fixest' & length(names(coef(multi1))) >= 5 & !('DaysPhysHlthBad' %in% names(coef(multi1))), FALSE)
   Hint: You can regress Y on X, W, and Z using feols(Y~X+W+Z). Don't forget to add at least three other controls!
 
 - Class: figure
