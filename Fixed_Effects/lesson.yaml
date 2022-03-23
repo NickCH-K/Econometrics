@@ -10,10 +10,10 @@
   Output: |-
    This Swirl lesson will cover the various features on the right-hand-side of the regression equation, including binary and categorical variables, variable transformations, and interactions.
    
-   This lesson will make use of the **tidyverse**, **vtable**, **car**, **jtools**, **fixest**, and **wooldridge** packages.
+   This lesson will make use of the **tidyverse**, **vtable**, **fixest**, and **wooldridge** packages.
    
    If you don't have these, exit out of this lesson with bye(), install the packages with
-   install.packages(c('tidyverse','vtable','car','jtools','wooldridge','fixest'),dependencies = TRUE)
+   install.packages(c('tidyverse','vtable','wooldridge','fixest'),dependencies = TRUE)
    
    And then come back in with swirl()
    
@@ -28,18 +28,6 @@
   CorrectAnswer: library(vtable)
   AnswerTests: omnitest(correctExpr='library(vtable)')
   Hint: Just type library(vtable)
-
-- Class: cmd_question
-  Output: Now load the jtools package.
-  CorrectAnswer: library(jtools)
-  AnswerTests: omnitest(correctExpr='library(jtools)')
-  Hint: Just type library(jtools)
-
-- Class: cmd_question
-  Output: Now load the car package.
-  CorrectAnswer: library(car)
-  AnswerTests: omnitest(correctExpr='library(car)')
-  Hint: Just type library(car)
 
 - Class: cmd_question
   Output: Now load the fixest package.
@@ -169,10 +157,10 @@
   Hint: In fixed effects, the different districts have lines with the same slope, but moving up and down.
 
 - Class: cmd_question
-  Output: Regress math4 on expp, with lunch added as a control. Store the result as ols.
-  CorrectAnswer: ols <- lm(math4 ~ expp + lunch, data = mathpnl)
-  AnswerTests: ifelse(exists('ols'),cor(predict(ols),predict(lm(math4 ~ expp + lunch, data = mathpnl))) > .99,FALSE)
-  Hint: Run a regular lm() regression, with no fixed effects, of math4 on expp and lunch
+  Output: Use feols() to regress math4 on expp, with lunch added as a control. Store the result as ols.
+  CorrectAnswer: ols <- feols(math4 ~ expp + lunch, data = mathpnl)
+  AnswerTests: ifelse(exists('ols'),class(ols) == 'fixest' & cor(predict(ols),predict(feols(math4 ~ expp + lunch, data = mathpnl))) > .99,FALSE)
+  Hint: Run a regular feols() regression, with no fixed effects, of math4 on expp and lunch
 
 - Class: cmd_question
   Output: |-
@@ -197,16 +185,16 @@
   Output: (by the way, the next time you have to do the same calculation to a bunch of different variables in dplyr, try looking at the across() function to save yourself some time!)
 
 - Class: cmd_question
-  Output: Regress math4_dm on expp_dm with lunch_dm as a control, and save the result as fe_dm
-  CorrectAnswer: fe_dm <- lm(math4_dm ~ expp_dm + lunch_dm, data = mathpnl_dm)
-  AnswerTests: ifelse(exists('fe_dm'),cor(predict(fe_dm),predict(lm(math4_dm ~ expp_dm + lunch_dm, data = mathpnl_dm))) > .99, FALSE)
+  Output: Use feols to regress math4_dm on expp_dm with lunch_dm as a control, and save the result as fe_dm
+  CorrectAnswer: fe_dm <- feols(math4_dm ~ expp_dm + lunch_dm, data = mathpnl_dm)
+  AnswerTests: ifelse(exists('fe_dm'),class(fe_dm) == 'fixest' & cor(predict(fe_dm),predict(feols(math4_dm ~ expp_dm + lunch_dm, data = mathpnl_dm))) > .99, FALSE)
   Hint: Just run a regression as normal. Don't forget to use the mathpnl_dm data!
 
 - Class: cmd_question
-  Output: Use export_summs() to look at both ols and fe_dm, with the digits = 3 option.
-  CorrectAnswer: export_summs(ols, fe_dm, digits = 3)
-  AnswerTests: omnitest(correctExpr='export_summs(ols, fe_dm, digits = 3)')
-  Hint: Pass ols and fe_dm to the same export_summs() call. Don't forget digits = 3!
+  Output: Use etable() to look at both ols and fe_dm, with the digits = 3 option.
+  CorrectAnswer: etable(ols, fe_dm, digits = 3)
+  AnswerTests: omnitest(correctExpr='etable(ols, fe_dm, digits = 3)')
+  Hint: Pass ols and fe_dm to the same etable() call. Don't forget digits = 3!
 
 - Class: mult_question
   Output: |-
@@ -224,39 +212,26 @@
    
    Be aware this is a very *slow* way to run fixed effects. Not ideal! This is for practice purposes.
    
-   Regress math4 on expp, lunch, and factor(distid) and store the result as fe_lsdv.
+   Use feols to regress math4 on expp, lunch, and factor(distid) and store the result as fe_lsdv.
    
-   This (and the linearHypothesis in the next step) might take a while - LSDV can be very slow!
-  CorrectAnswer: fe_lsdv <- lm(math4 ~ expp + lunch + factor(distid), data = mathpnl)
-  AnswerTests: ifelse(exists('fe_lsdv'),cor(predict(fe_lsdv),predict(lm(math4 ~ expp + lunch + factor(distid), data = mathpnl))) > .99, FALSE)
+   This (and the wald() in the next step) might take a while - LSDV can be very slow!
+  CorrectAnswer: fe_lsdv <- feols(math4 ~ expp + lunch + factor(distid), data = mathpnl)
+  AnswerTests: ifelse(exists('fe_lsdv'),class(fe_lsdv) == 'fixest' & cor(predict(fe_lsdv),predict(feols(math4 ~ expp + lunch + factor(distid), data = mathpnl))) > .99, FALSE)
   Hint: Just do a regular regression and add +factor(distid) into it.
 
 - Class: cmd_question
   Output: |-
    One benefit of the LSDV approach is that we can test if the fixed effects are themselves significant.
    
-   Do
-   
-   linearHypothesis(fe_lsdv, matchCoefs(fe_lsdv, 'distid'))
+   Use wald() from fixest to test if all the distid coefficients are jointly zero.
    
    to see if you can reject that the intercept is the same for all districts.
-   
-   NOTE - Mac computers seem to have difficulty processing this giant test. If you're using a mac, just answer 'mac' with the quotes to go to the next question.
-  CorrectAnswer: linearHypothesis(fe_lsdv, matchCoefs(fe_lsdv, "distid"))
-  AnswerTests: any_of_exprs('linearHypothesis(fe_lsdv, matchCoefs(fe_lsdv, "distid"))','"mac"')
+  CorrectAnswer: wald(fe_lsdv, "distid")
+  AnswerTests: any_of_exprs('wald(fe_lsdv, "distid")')
   Hint: Just copy/paste the code.
 
 - Class: mult_question
   Output: |-
-   The output of the test is:
-   
-   Model 1: restricted model
-   Model 2: math4 ~ expp + lunch + factor(distid)
-   
-   Res.Df    RSS  Df Sum of Sq      F    Pr(>F)    
-   1   3847 882322                                   
-   2   3298 408135 549    474186 6.9795 < 2.2e-16 ***
-   
    Can we reject that the intercept is the same for all districts at the 1% level?
   AnswerChoices: Yes;No
   CorrectAnswer: Yes
@@ -274,11 +249,11 @@
 
 - Class: cmd_question
   Output: |-
-   Use feols() to run regress math4 on expp and lunch, with distid as fixed effects. Store the result as fe_robust
+   Use feols() to run regress math4 on expp and lunch, with distid as fixed effects. Store the result as fe_feols
    
-  CorrectAnswer: fe_robust <- feols(math4 ~ expp + lunch | distid, data = mathpnl)
+  CorrectAnswer: fe_feols <- feols(math4 ~ expp + lunch | distid, data = mathpnl)
   AnswerTests: ifelse(exists('fe_robust'),cor(fe_robust$fitted.values,feols(math4 ~ expp + lunch | distid, data = mathpnl)$fitted.values) > .99, FALSE); expr_uses_func('feols')
-  Hint: feols() takes a regular formula (for everything but the fixed effects) and a data= argument, just like lm(). Now just add | distid after the rest of the formula.
+  Hint: Just add | distid after the rest of the formula instead of +factor(distid).
 
 - Class: text
   Output: |-
@@ -286,11 +261,11 @@
    
    We can adjust for this using "cluster-robust standard errors", much like with heteroskedasticity-robust standard errors. 
    
-   In fact, this is so common a practice with fixed effects that it is the DEFAULT behavior in feols. If you have fixed effects in an feols() call, it will by default cluster the standard errors at the level of those fixed effects. (this is one time when I wished we used modelsummary::modelsummary instead of jtools::export_summs. modelsummary automatically notes the standard error type below!)
+   In fact, this is so common a practice with fixed effects that it is the DEFAULT behavior in feols. If you have fixed effects in an feols() call, it will by default cluster the standard errors at the level of those fixed effects. etable() will also tell you what kind of SEs you're using.
 
 - Class: cmd_question
   Output: |-
-   Use export_summs to look at the results for ols, fe_dm, fe_lsdv, and fe_robust all together.
+   Use etable to look at the results for ols, fe_dm, fe_lsdv, and fe_feols all together.
    
    Include the options
    
@@ -298,14 +273,14 @@
    
    and (so all the dummy coefficients from fe_lsdv don't show up)
    
-   coefs = c('expp','expp_dm','lunch','lunch_dm')
-  CorrectAnswer: export_summs(ols, fe_dm, fe_lsdv, fe_robust, digits = 3, coefs = c('expp','expp_dm','lunch','lunch_dm'))
-  AnswerTests: omnitest(correctExpr='export_summs(ols, fe_dm, fe_lsdv, fe_robust, digits = 3, coefs = c("expp","expp_dm","lunch","lunch_dm"))')
-  Hint: Do export_summs() as normal, feeding in all four regression objects (in that order), and add the digits = 3 and coefs = c('expp','expp_dm','lunch','lunch_dm') options.
+   keep = c('expp','expp_dm','lunch','lunch_dm')
+  CorrectAnswer: etable(ols, fe_dm, fe_lsdv, fe_feols, digits = 3, keep = c('expp','expp_dm','lunch','lunch_dm'))
+  AnswerTests: omnitest(correctExpr='etable(ols, fe_dm, fe_lsdv, fe_feols, digits = 3, keep = c("expp","expp_dm","lunch","lunch_dm"))')
+  Hint: Do etable() as normal, feeding in all four regression objects (in that order), and add the digits = 3 and keep = c('expp','expp_dm','lunch','lunch_dm') options.
 
 - Class: cmd_question
   Output: |-
-   Finally, use the same code you just had but with plot_coefs(), and remove the digits = 3 argument, so you can see the coefficients from the different models against each other. (Should be a lot of similarities!)
-  CorrectAnswer: plot_coefs(ols, fe_dm, fe_lsdv, fe_robust, coefs = c('expp','expp_dm','lunch','lunch_dm'))
-  AnswerTests: omnitest(correctExpr='plot_coefs(ols, fe_dm, fe_lsdv, fe_robust, coefs = c("expp","expp_dm","lunch","lunch_dm"))')
-  Hint: Take the export_summs() code from last time, remove "digits = 3,", and change export_summs to plot_coefs
+   Finally, use coefplot() with a list of models - list(ols, fe_lsdv, fe_feols), and the keep = c('expp','lunch') option, to plot out the different coefficients together.
+  CorrectAnswer: coefplot(list(ols, fe_lsdv, fe_feols), keep = c('expp','lunch'))
+  AnswerTests: omnitest(correctExpr='coefplot(list(ols, fe_lsdv, fe_feols), keep = c("expp","lunch"))')
+  Hint: Take the take the list() provided and the keep = c('expp','lunch') option provided and feed them both to coefplot().
