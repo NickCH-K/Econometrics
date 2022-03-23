@@ -175,7 +175,7 @@
    Using the MedExp data, use feols() from fixest to regress log(med) on age, and save the regression object as med_age.
    
   CorrectAnswer: med_age <- feols(log(med)~age, data = MedExp)
-  AnswerTests: ifelse(exists('med_age'),class(med_age) == 'fixest' & identical(predict(med_age),predict(lm(log(med)~age, data = MedExp))),FALSE)
+  AnswerTests: ifelse(exists('med_age'),class(med_age) == 'fixest' & identical(predict(med_age),predict(feols(log(med)~age, data = MedExp))),FALSE)
   Hint: Remember, our OLS formula is feols(Y~X, data = nameofdataset)
 
 - Class: cmd_question
@@ -306,7 +306,7 @@
    
    Store the regression as biased_reg
   CorrectAnswer: biased_reg <- feols(Y~X, data = tb)
-  AnswerTests: ifelse(exists('biased_reg'),class(biased_reg) == 'fixest' & identical(predict(biased_reg),predict(lm(Y~X, data = tb))),FALSE)
+  AnswerTests: ifelse(exists('biased_reg'),class(biased_reg) == 'fixest' & identical(predict(biased_reg),predict(feols(Y~X, data = tb))),FALSE)
   Hint: Run a regression as normal, with Y ~ X, and store the result as biased_reg.
 
 - Class: cmd_question
