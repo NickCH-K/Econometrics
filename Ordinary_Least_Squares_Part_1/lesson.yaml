@@ -232,8 +232,8 @@
    Fill in the appropriate x and y-axis variables for your data:
    
    ggplot(mtcars, aes(x = xaxisvariable, y = yaxisvariable)) + geom_point() + geom_smooth(method = 'lm')
-  CorrectAnswer: ggplot(mtcars, aes(x = xaxisvariable, y = yaxisvariable)) + geom_point() + geom_smooth(method = 'lm')
-  AnswerTests: omnitest(correctVal=ggplot(mtcars, aes(x = xaxisvariable, y = yaxisvariable)) + geom_point() + geom_smooth(method = 'lm'))
+  CorrectAnswer: ggplot(mtcars, aes(x = hp, y = mpg)) + geom_point() + geom_smooth(method = 'lm')
+  AnswerTests: omnitest(correctVal=ggplot(mtcars, aes(x = hp, y = mpg)) + geom_point() + geom_smooth(method = 'lm'))
   Hint: Just fill in the appropriate axis values.
 
 - Class: cmd_question
