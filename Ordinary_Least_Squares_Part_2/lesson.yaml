@@ -318,8 +318,8 @@
 
 - Class: cmd_question
   Output: And now plot it out so we can see what's going on. Fill in
-  
-  ggplot(mtcars, aes(x = xaxisvariable, y = yaxisvariable)) + geom_point() + geom_smooth(method = 'lm')
+   
+   ggplot(mtcars, aes(x = xaxisvariable, y = yaxisvariable)) + geom_point() + geom_smooth(method = 'lm')
   CorrectAnswer: ggplot(mtcars, aes(x = X, y = Y)) + geom_point() + geom_smooth(method = 'lm')
   AnswerTests: omnitest(correctVal=ggplot(mtcars, aes(x = X, y = Y)) + geom_point() + geom_smooth(method = 'lm'))
   Hint: Fill in X for xaxisvariable and Y for yaxisvariable.
