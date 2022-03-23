@@ -1,6 +1,4 @@
 
-
-
 - Class: meta
   Course: Econometrics
   Lesson: Difference-in-differences
@@ -15,7 +13,7 @@
    
    This lesson will work through examples of the difference-in-differences (DiD) method.
    
-   Before starting, you should have the **tidyverse**, **haven**, **vtable**, **jtools**, **gtrendsR*, and **lubridate** packages installed. Please exit now to install these packages if you do not have them.
+   Before starting, you should have the **tidyverse**, **haven**, **vtable**, **fixest**, **gtrendsR*, and **lubridate** packages installed. Please exit now to install these packages if you do not have them.
 
 
 - Class: text
@@ -44,9 +42,9 @@
 
 - Class: cmd_question
   Output: |- 
-   And now load jtools.
-  CorrectAnswer: library(jtools)
-  AnswerTests: omnitest(correctExpr='library(jtools)')
+   And now load fixest.
+  CorrectAnswer: library(fixest)
+  AnswerTests: omnitest(correctExpr='library(fixest)')
   Hint: Take the name of the package and feed that to the library() function.
 
 - Class: cmd_question
@@ -138,19 +136,19 @@
 
 - Class: cmd_question
   Output: |- 
-    Using your two new dummy variables, estimate the simple difference-in-difference regression model, using hits (a measure of how popular a search term is) as your outcome variable.
+    Using feols() and your two new dummy variables, estimate the simple difference-in-difference regression model, using hits (a measure of how popular a search term is) as your outcome variable.
     
     Save the resulting estimates as bread_diff_in_diff
-  CorrectAnswer: bread_diff_in_diff <- lm(hits ~ treated * post_treatment, data = trends_time)  
-  AnswerTests: ifelse(exists('bread_diff_in_diff'), cor(predict(bread_diff_in_diff), predict(lm(hits ~ treated * post_treatment, data = trends_time))) > .99, FALSE)
+  CorrectAnswer: bread_diff_in_diff <- feols(hits ~ treated * post_treatment, data = trends_time)  
+  AnswerTests: ifelse(exists('bread_diff_in_diff'), class(bread_diff_in_diff) == 'fixest' & cor(predict(bread_diff_in_diff), predict(feols(hits ~ treated * post_treatment, data = trends_time))) > .99, FALSE)
   Hint: Remember the 'outcome = treated + post_treatment + treated:post_treatment' formula
 
 - Class: cmd_question
   Output: |- 
-    Summarize your output using export_summs
+    Summarize your output using etable
     
-  CorrectAnswer: export_summs(bread_diff_in_diff)
-  AnswerTests: omnitest(correctExpr='export_summs(bread_diff_in_diff)')
+  CorrectAnswer: etable(bread_diff_in_diff)
+  AnswerTests: omnitest(correctExpr='etable(bread_diff_in_diff)')
   Hint:
 
 - Class: cmd_question
@@ -169,7 +167,7 @@
   Output: |- 
     After following similar trends for months, there is a sharp uptick in sourdough searches near the time period when the lockdowns begin!
     
-    That said, the uptick was almost completely gone by July. Your difference-in-difference estimate picked up the average increase in search volume over the whole post-period. You could have easily estimated period-by-period treatment effects as well, but that is beyond the scope of this course.
+    That said, the uptick was almost completely gone by July. Your difference-in-difference estimate picked up the average increase in search volume over the whole post-period. You could have easily estimated period-by-period treatment effects as well, but that is beyond the scope of this course (see https://theeffectbook.net/ch-DifferenceinDifference.html#long-term-effects if you are interested).
  
 - Class: text
   Output: |- 
@@ -251,16 +249,16 @@
     Now estimate the simple difference-in-difference regression model.
     
     Save the resulting estimates as eitc_diff_in_diff
-  CorrectAnswer: eitc_diff_in_diff <- lm(work ~ treated_women * post_expansion, data = eitc)  
-  AnswerTests: ifelse(exists('eitc_diff_in_diff'), cor(predict(eitc_diff_in_diff), predict(lm(work ~ treated_women * post_expansion, data = eitc))) > .99, FALSE)
+  CorrectAnswer: eitc_diff_in_diff <- feols(work ~ treated_women * post_expansion, data = eitc)  
+  AnswerTests: ifelse(exists('eitc_diff_in_diff'), class(eitc_diff_in_diff) == 'fixest' & cor(predict(eitc_diff_in_diff), predict(feols(work ~ treated_women * post_expansion, data = eitc))) > .99, FALSE)
   Hint: Remember the 'outcome = treated + post_treatment + treated*post_treatment' formula
 
 - Class: cmd_question
   Output: |- 
-    Summarize your output using export_summs
+    Summarize your output using etable
     
-  CorrectAnswer: export_summs(eitc_diff_in_diff)
-  AnswerTests: omnitest(correctExpr='export_summs(eitc_diff_in_diff)')
+  CorrectAnswer: etable(eitc_diff_in_diff)
+  AnswerTests: omnitest(correctExpr='etable(eitc_diff_in_diff)')
   Hint:
 
 - Class: mult_question
@@ -273,15 +271,28 @@
 
 - Class: cmd_question
   Output: |- 
-      As the last question illustrates, it is very easy to mistake **percentage point** effects with **percent** increases
+      The models we have run up to now, outcome ~ treated*after, are designed for cases where you have exactly two groups and exactly two time periods. But often, we have more than that! In those cases (assuming that all our treated groups got treated at the same time), we don't just want controls for treated and after, we want fixed effects for group and fixed effects for time period. This is the "two-way fixed effects" estimator for DID, and it allows for a finer-grained detail of control for group and time differences.
       
-      Using your mean for treated women in the pre-period (0.446) and your DiD regression estimate of 0.05, what is the **percent** increase in labor supply attributable to the policy for women with children? 
+      Use feols() to regress work on the treated*after term you had before (treated_women*post_expansion, note the non-interaction-term parts will be dropped, but you still want * rather than : since otherwise it does some weird stuff), and then use | to add fixed effects for group (children, the different numbers of children women have which determine their treatment assignment) and time period (year). Put the group before the time periods so the standard errors will be clustered at the group level. Save the result as twfe
       
-      Keep everything in decimal form and calculate your answer by hand in the console 
-  CorrectAnswer: 0.05/0.446
-  AnswerTests: omnitest(correctVal=(0.05/0.446))
-  Hint: Make sure to use the values I listed in the question to calculate your answer. Keep everything in decimal form (e.g., 0.10 is 10 percent)
+      To be clear, if you have more than two time periods and/or more than two groups, and the treatment went into effect for all groups at the same time, *you should be doing DID this way*.
+  CorrectAnswer: twfe <- feols(work ~ treated_women*post_expansion | children + year, data = eitc)
+  AnswerTests: ifelse(exists('twfe'), class(twfe) == 'fixest' & cor(predict(twfe), predict(feols(work ~ treated_women*post_expansion | children + year, data = eitc))) > .99, FALSE)
+  Hint: Start with the feols() command you had before, but add | children + year.
    
+- Class: cmd_question
+  Output: |- 
+    Put both eitc_diff_in_diff and twfe in the same etable
     
+  CorrectAnswer: etable(eitc_diff_in_diff, twfe)
+  AnswerTests: omnitest(correctExpr='etable(eitc_diff_in_diff, twfe)')
+  Hint:
+
+- Class: cmd_question
+  Output: |- 
+    You may notice that etable(twfe) doesn't report the fixed effects themselves, but you may want these to understand group or time differences. Use fixef(twfe) to see the fixed effects.
     
+  CorrectAnswer: fixef(twfe)
+  AnswerTests: omnitest(correctExpr='fixef(twfe)')
+  Hint:
     
