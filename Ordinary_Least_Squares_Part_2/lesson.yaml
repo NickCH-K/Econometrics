@@ -192,7 +192,7 @@
   Hint: We're working with log(med) as our Y variable here, not med!
 
 - Class: text
-  Output: (We'll come back to this later, but a neat tip for now is that a .02 increase in log(med) can also be thought of as a 2% increase in med! So a one year increase in age is associated with a 2% increase in medical expenditures.)
+  Output: (We'll come back to this later, but a neat tip for now is that a .02 increase in log(med) can also be thought of as a 2% increase in med! Or at least approximately, as long as that increase is pretty small, below .1 or so. So a one year increase in age is associated with a 2% increase in medical expenditures.)
 
 - Class: cmd_question
   Output: |- 
@@ -319,10 +319,10 @@
 - Class: cmd_question
   Output: And now plot it out so we can see what's going on. Fill in
    
-   ggplot(mtcars, aes(x = xaxisvariable, y = yaxisvariable)) + geom_point() + geom_smooth(method = 'lm')
-  CorrectAnswer: ggplot(mtcars, aes(x = X, y = Y)) + geom_point() + geom_smooth(method = 'lm')
-  AnswerTests: omnitest(correctVal=ggplot(mtcars, aes(x = X, y = Y)) + geom_point() + geom_smooth(method = 'lm'))
-  Hint: Fill in X for xaxisvariable and Y for yaxisvariable.
+   ggplot(tb, aes(x = xaxisvariable, y = yaxisvariable)) + geom_point() + geom_smooth(method = 'lm')
+  CorrectAnswer: ggplot(tb, aes(x = X, y = Y)) + geom_point() + geom_smooth(method = 'lm')
+  AnswerTests: omnitest(correctVal=ggplot(tb, aes(x = X, y = Y)) + geom_point() + geom_smooth(method = 'lm'))
+  Hint: Fill in X for xaxisvariable and Y for yaxisvariable, and tb for the data.
 
 - Class: mult_question
   Output: The plot is revealing an assumption that we've violated! What is it?
