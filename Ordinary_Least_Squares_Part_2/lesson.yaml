@@ -317,7 +317,7 @@
   Hint: Take biased_reg and send it to etable().
 
 - Class: cmd_question
-  Output: And now plot it out so we can see what's going on. Fill in:
+  Output: And now plot it out so we can see what's going on. Fill in
   
   ggplot(mtcars, aes(x = xaxisvariable, y = yaxisvariable)) + geom_point() + geom_smooth(method = 'lm')
   CorrectAnswer: ggplot(mtcars, aes(x = X, y = Y)) + geom_point() + geom_smooth(method = 'lm')
