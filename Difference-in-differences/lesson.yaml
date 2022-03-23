@@ -263,10 +263,10 @@
 
 - Class: mult_question
   Output: |- 
-   What is the interpretation of the coefficient on treated_women:post_expansion
-  AnswerChoices: After the expansion, women with kids worked 0.5 hours more relative to those without kids; After the expansion, women with kids worked more than women without kids; After the expansion, women with kids were 5 percent more likely to work relative to those without kids; After the expansion, women with kids were 5 percentage points more likely to work relative to those without kids
-  CorrectAnswer: After the expansion, women with kids were 5 percentage points more likely to work relative to those without kids
-  AnswerTests: omnitest(correctVal='After the expansion, women with kids were 5 percentage points more likely to work relative to those without kids')
+   What is the interpretation of the coefficient on treated_women:post_expansion?
+  AnswerChoices: Work hours grew for women with kids 0.05 hours more than it did for those without kids from before to after the expansion; After the expansion, women with kids worked 0.05 hours more than women without kids; After the expansion, women with kids were 5 percentage points more likely to work than women without kids; Work hours grew for women with kids 5 percent more than it did for those without kids from before to after the expansion; Work hours grew for women with kids 5 percentage points more than it did for those without kids from before to after the expansion
+  CorrectAnswer: Work hours grew for women with kids 5 percentage points more than it did for those without kids from before to after the expansion
+  AnswerTests: omnitest(correctVal='Work hours grew for women with kids 5 percentage points more than it did for those without kids from before to after the expansion')
   Hint: Be careful of the difference between percent and percentage points!
 
 - Class: cmd_question
