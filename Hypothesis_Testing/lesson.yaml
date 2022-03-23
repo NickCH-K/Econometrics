@@ -37,6 +37,7 @@
    Copy-paste this in:
    
    # create the data with tibble() and mutate()
+   
    df <- tibble(X = runif(300)) %>% mutate(Y = 5 + 3*X + rnorm(300))
   CorrectAnswer: |-
    set.seed(1000)
@@ -217,7 +218,7 @@
 - Class: cmd_question
   Output: Use coefplot() to look at the 95% confidence interval of the coefficient on longitude (called long in the regression). Use the keep option to only look at the longitude coefficient, not the intercept.
   CorrectAnswer: coefplot(wind_reg, keep = 'long')
-  AnswerTests: omnitest(correctExpr = "coefplot(wind_reg, keep = 'long')"")
+  AnswerTests: omnitest(correctExpr = "coefplot(wind_reg, keep = 'long')")
   Hint: Take your regression wind_reg and give it to coefplot as its first argument. Then add a keep option set to long, with quotes around long.
 
 - Class: exact_question
