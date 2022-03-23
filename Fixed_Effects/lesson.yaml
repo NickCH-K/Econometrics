@@ -252,7 +252,7 @@
    Use feols() to run regress math4 on expp and lunch, with distid as fixed effects. Store the result as fe_feols
    
   CorrectAnswer: fe_feols <- feols(math4 ~ expp + lunch | distid, data = mathpnl)
-  AnswerTests: ifelse(exists('fe_robust'),cor(fe_robust$fitted.values,feols(math4 ~ expp + lunch | distid, data = mathpnl)$fitted.values) > .99, FALSE); expr_uses_func('feols')
+  AnswerTests: ifelse(exists('fe_feols'),cor(fe_feols$fitted.values,feols(math4 ~ expp + lunch | distid, data = mathpnl)$fitted.values) > .99, FALSE); expr_uses_func('feols')
   Hint: Just add | distid after the rest of the formula instead of +factor(distid).
 
 - Class: text
