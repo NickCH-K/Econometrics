@@ -22,9 +22,9 @@
 
 - Class: text
   Output: |-
-   For this lesson you will need the packages **tidyverse**, **Ecdat**, **jtools**, **huxtable**, **sandwich** and **vtable**
+   For this lesson you will need the packages **tidyverse**, **Ecdat**, **fixest** and **vtable**
    
-   If you don't have these, you'll need to install them. You can Escape or bye() out of this, install them with install.packages(c('tidyverse','Ecdat','jtools','huxtable', 'sandwich', 'vtable')), and then swirl() to get back in.
+   If you don't have these, you'll need to install them. You can Escape or bye() out of this, install them with install.packages(c('tidyverse','Ecdat','fixest', 'vtable')), and then swirl() to get back in.
    
    If you've already done Ordinary Least Squares Part 1, the only one you might not still have is Ecdat. You can install that with install.packages('Ecdat')
 
@@ -40,7 +40,7 @@
    
    library(vtable)
    
-   library(jtools)
+   library(fixest)
   CorrectAnswer: |-
    library(tidyverse)
    
@@ -48,8 +48,8 @@
    
    library(vtable)
    
-   library(jtools)
-  AnswerTests: sum(paste0('package:',c('tidyverse','Ecdat','vtable','jtools')) %in% search()) == 4
+   library(fixest)
+  AnswerTests: sum(paste0('package:',c('tidyverse','Ecdat','vtable','fixest')) %in% search()) == 4
   Hint: Copy/paste! Or just type skip()
   
   
@@ -172,17 +172,17 @@
   Output: |- 
    Now we're ready for a regression.
    
-   Using the MedExp data, regress log(med) on age, and save the regression object as med_age.
+   Using the MedExp data, use feols() from fixest to regress log(med) on age, and save the regression object as med_age.
    
-  CorrectAnswer: med_age <- lm(log(med)~age, data = MedExp)
-  AnswerTests: ifelse(exists('med_age'),identical(predict(med_age),predict(lm(log(med)~age, data = MedExp))),FALSE)
-  Hint: Remember, our OLS formula is lm(Y~X, data = nameofdataset)
+  CorrectAnswer: med_age <- feols(log(med)~age, data = MedExp)
+  AnswerTests: ifelse(exists('med_age'),class(med_age) == 'fixest' & identical(predict(med_age),predict(lm(log(med)~age, data = MedExp))),FALSE)
+  Hint: Remember, our OLS formula is feols(Y~X, data = nameofdataset)
 
 - Class: cmd_question
-  Output: Use export_summs() to look at the regression results.
-  CorrectAnswer: export_summs(med_age)
-  AnswerTests: omnitest(correctVal=export_summs(med_age))
-  Hint: Just type export_summs(med_age).
+  Output: Use etable() to look at the regression results.
+  CorrectAnswer: etable(med_age)
+  AnswerTests: omnitest(correctVal=etable(med_age))
+  Hint: Just type etable(med_age).
 
 - Class: mult_question
   Output: The slope coefficient on age is 0.02. Interpret this coefficient.
@@ -302,28 +302,30 @@
 
 - Class: cmd_question
   Output: |-
-   And now regress Y on X in the tb data.
+   And now regress Y on X in the tb data using feols().
    
    Store the regression as biased_reg
-  CorrectAnswer: biased_reg <- lm(Y~X, data = tb)
-  AnswerTests: ifelse(exists('biased_reg'),identical(predict(biased_reg),predict(lm(Y~X, data = tb))),FALSE)
+  CorrectAnswer: biased_reg <- feols(Y~X, data = tb)
+  AnswerTests: ifelse(exists('biased_reg'),class(biased_reg) == 'fixest' & identical(predict(biased_reg),predict(lm(Y~X, data = tb))),FALSE)
   Hint: Run a regression as normal, with Y ~ X, and store the result as biased_reg.
 
 - Class: cmd_question
   Output: |-
-   Look at the regression with export_summs() to see that the coefficient on X is indeed much higher than .2.
-  CorrectAnswer: export_summs(biased_reg)
-  AnswerTests: omnitest(correctVal=export_summs(biased_reg))
-  Hint: Take biased_reg and send it to export_summs().
+   Look at the regression with etable() to see that the coefficient on X is indeed much higher than .2.
+  CorrectAnswer: etable(biased_reg)
+  AnswerTests: omnitest(correctVal=etable(biased_reg))
+  Hint: Take biased_reg and send it to etable().
 
 - Class: cmd_question
-  Output: And now send it to effect_plot() so we can see what's going on. Be sure to include plot.points = TRUE.
-  CorrectAnswer: effect_plot(biased_reg, pred = 'X', plot.points = TRUE)
-  AnswerTests: omnitest(correctVal=effect_plot(biased_reg, pred = 'X', plot.points = TRUE))
-  Hint: Take biased_reg and send it to effect_plot(). We want pred to be X and plot.point = TRUE.
+  Output: And now plot it out so we can see what's going on. Fill in:
+  
+  ggplot(mtcars, aes(x = xaxisvariable, y = yaxisvariable)) + geom_point() + geom_smooth(method = 'lm')
+  CorrectAnswer: ggplot(mtcars, aes(x = X, y = Y)) + geom_point() + geom_smooth(method = 'lm')
+  AnswerTests: omnitest(correctVal=ggplot(mtcars, aes(x = X, y = Y)) + geom_point() + geom_smooth(method = 'lm'))
+  Hint: Fill in X for xaxisvariable and Y for yaxisvariable.
 
 - Class: mult_question
-  Output: The effect plot is revealing an assumption that we've violated! What is it?
+  Output: The plot is revealing an assumption that we've violated! What is it?
   AnswerChoices: The plot shows that X is endogenous.; The plot shows heteroskedasticity.; The plot shows clustering.; The plot shows a negative relationship.; The plot shows that we haven't minimized the sum of squared residuals.
   CorrectAnswer: The plot shows heteroskedasticity.
   AnswerTests: omnitest(correctVal='The plot shows heteroskedasticity.')
@@ -333,10 +335,10 @@
   Output: |-
    Since the variance of the residuals changes for different values of X, we have heteroskedasticity.
    
-   This will only fix the heteroskedasticity, not the endogeneity, but run export_summs() again, this time with robust = TRUE.
-  CorrectAnswer: export_summs(biased_reg, robust = TRUE)
-  AnswerTests: omnitest(correctVal=export_summs(biased_reg, robust = TRUE))
-  Hint: It's the same export_summs() code you already used, but with the robust = TRUE option.
+   This will only fix the heteroskedasticity, not the endogeneity, but run etable() again, this time with vcov = 'hetero'.
+  CorrectAnswer: etable(biased_reg, vcov = 'hetero')
+  AnswerTests: omnitest(correctVal=etable(biased_reg, vcov = 'hetero'))
+  Hint: It's the same etable() code you already used, but with the vcov = 'hetero' option.
 
 - Class: text
   Output: |- 
@@ -344,10 +346,12 @@
    
    We don't have clustering here, but if we had wanted cluster-robust standard errors, instead of
    
-   export_summs(biased_reg, robust = TRUE)
+   etable(biased_reg, vcov = 'hetero')
    
    we could have done
    
-   export_summs(biased_reg, cluster = C)
+   etable(biased_reg, vcov = ~C)
    
-   where C is the name of the variable we think the errors are clustered within.
+   where C is the name of the variable we think the errors are clustered within. Or we could have just done everything within feols itself:
+   
+   feols(Y~X, vcov = 'hetero') or feols(Y~X, vcov = ~C)

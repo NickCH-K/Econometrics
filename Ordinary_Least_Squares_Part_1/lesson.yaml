@@ -24,13 +24,11 @@
 
 - Class: text
   Output: |-
-   This lesson will make use of the **tidyverse**, **vtable**, **jtools**, and **huxtable** packages.
-   
-   (we won't be working with **huxtable** directly, but we'll need it installed to use **jtools**)
+   This lesson will make use of the **tidyverse**, **vtable**, and **fixest** packages.
    
    So make sure those are installed first!
    
-   If they're not installed, you can hit Escape or type bye() to exit this course now and then install them with install.packages(c('tidyverse','vtable','jtools','huxtable')) before starting back up. You can re-enter the course by typing swirl()
+   If they're not installed, you can hit Escape or type bye() to exit this course now and then install them with install.packages(c('tidyverse','vtable','fixest')) before starting back up. You can re-enter the course by typing swirl()
 
 - Class: cmd_question
   Output: |- 
@@ -50,9 +48,9 @@
 
 - Class: cmd_question
   Output: |- 
-   And finally jtools.
-  CorrectAnswer: library(jtools)
-  AnswerTests: omnitest(correctExpr='library(jtools)')
+   And finally fixest.
+  CorrectAnswer: library(fixest)
+  AnswerTests: omnitest(correctExpr='library(fixest)')
   Hint: Take the name of the package and feed that to the library() function.
 
 - Class: cmd_question
@@ -124,6 +122,8 @@
   Output: |- 
    Now put that string into the read_csv() function (from the tidyverse).
    
+   NOTE: read_csv() is different from, and usually better than, the base R function read.csv. Use read_csv, not read.csv!
+   
    This will read the data from the internet. However, we also need to *store* the data as an object in R.
    
    So use <- or = to save the data as df.
@@ -159,14 +159,14 @@
 
 - Class: cmd_question
   Output: |-
-   Now we can put that formula into the lm() function to run a regression.
+   Now we can put that formula into the feols() function from fixest to run a regression.
    
-   Use the lm() function. Put the mpg ~ hp formula in there first (without quotes).
+   Use the feols() function. Put the mpg ~ hp formula in there first (without quotes).
    
    Then, specify data = mtcars, since you're using the mtcars data set.
-  CorrectAnswer: lm(mpg~hp, data = mtcars)
-  AnswerTests: omnitest(correctVal=lm(mpg~hp, data = mtcars))
-  Hint: lm() takes two arguments here. The first is mpg~hp. Then put a comma to separate the arguments. Then data = mtcars.
+  CorrectAnswer: feols(mpg~hp, data = mtcars)
+  AnswerTests: omnitest(correctVal=feols(mpg~hp, data = mtcars))
+  Hint: feols() takes two arguments here. The first is mpg~hp. Then put a comma to separate the arguments. Then data = mtcars.
 
 - Class: exact_question
   Output: In this OLS line, what is the slope on hp? Round to the thousandths place (.001)
@@ -204,39 +204,37 @@
    For this, we will need to store our regression object so we can pass it to other functions.
 
    Rerun the same regression as in the last step, but save it to the object my_model.
-  CorrectAnswer: my_model <- lm(mpg~hp, data = mtcars)
-  AnswerTests: ifelse(exists('my_model'),identical(predict(my_model), predict(lm(mpg~hp, data = mtcars))),FALSE)
-  Hint: Take the lm() function you used in the last step (you can just hit the up key to reuse the code) and use <- to store it as my_model.
+  CorrectAnswer: my_model <- feols(mpg~hp, data = mtcars)
+  AnswerTests: ifelse(exists('my_model'),class(my_model) == 'fixest' & identical(predict(my_model), predict(lm(mpg~hp, data = mtcars))),FALSE)
+  Hint: Take the feols() function you used in the last step (you can just hit the up key to reuse the code) and use <- to store it as my_model.
 
 - Class: cmd_question
   Output: |-
    Let's look at a table summarizing the regression.
 
-   First, use the base-R standard summary() function to summarize your regression.
-  CorrectAnswer: summary(my_model)
-  AnswerTests: expr_uses_func('summary')
-  Hint: Take my_model and put it in the summary() function.
+   First, write the name of the model itself to summarize your regression.
+   
+   (note if you were using the base-R lm() instead of feols(), you'd need summary() instead just just writing the model name)
+  CorrectAnswer: my_model
+  AnswerTests: omnitest(correctExpr='my_model')
+  Hint: Type my_model.
 
 - Class: cmd_question
-  Output: Next, let's get a nicer look using export_summs() from the jtools package.
-  CorrectAnswer: export_summs(my_model)
-  AnswerTests: expr_uses_func('export_summs')
-  Hint: Take your my_model object and put it in the function export_summs().
+  Output: Next, let's get a nicer look using etable() from the fixest package.
+  CorrectAnswer: etable(my_model)
+  AnswerTests: expr_uses_func('etable')
+  Hint: Take your my_model object and put it in the function etable().
 
 - Class: cmd_question
   Output: |- 
-   Now let's get a nice graph of our regression results using effect_plot() from the jtools package.
+   Now let's get a nice graph of our regression results using ggplot() from the tidyverse package.
    
-   effect_plot() needs three things: 
+   Fill in the appropriate x and y-axis variables for your data:
    
-   1. Your regression object.
-   
-   2. The name of the X variable as a string for the pred= option.
-   
-   3. If you want the points to be plotted in addition to the line (and we do), set plot.points = TRUE.
-  CorrectAnswer: effect_plot(my_model, pred = 'hp', plot.points = TRUE)
-  AnswerTests: omnitest(correctVal=effect_plot(my_model, pred = 'hp', plot.points = TRUE))
-  Hint: effect_plot() is just like our other functions except we need to specify multiple options. Just separate each option with a comma.
+   ggplot(mtcars, aes(x = xaxisvariable, y = yaxisvariable)) + geom_point() + geom_smooth(method = 'lm')
+  CorrectAnswer: ggplot(mtcars, aes(x = xaxisvariable, y = yaxisvariable)) + geom_point() + geom_smooth(method = 'lm')
+  AnswerTests: omnitest(correctVal=ggplot(mtcars, aes(x = xaxisvariable, y = yaxisvariable)) + geom_point() + geom_smooth(method = 'lm'))
+  Hint: Just fill in the appropriate axis values.
 
 - Class: cmd_question
   Output: |-
@@ -244,9 +242,9 @@
 
    We are going to look at how corporate profits predict finanical-sector profits.
    
-   Run a regression using the df data with Financial as the dependent variable and CorporateProfitsAdj as the independent variable, and save it as reg2.
-  CorrectAnswer: reg2 <- lm(Financial ~ CorporateProfitsAdj, data = df)
-  AnswerTests: ifelse(exists('reg2'),identical(predict(reg2), predict(lm(Financial ~ CorporateProfitsAdj, data = df))),FALSE)
+   Use feols() to run a regression using the df data with Financial as the dependent variable and CorporateProfitsAdj as the independent variable, and save it as reg2.
+  CorrectAnswer: reg2 <- feols(Financial ~ CorporateProfitsAdj, data = df)
+  AnswerTests: ifelse(exists('reg2'),class(reg2) == 'fixest' & identical(predict(reg2), predict(lm(Financial ~ CorporateProfitsAdj, data = df))),FALSE)
   Hint: Use the exact same code as with the mtcars regression, but now the data is df, we have Financial instead of mpg, and we have CorporateProfitsAdj instead of hp.
 
 - Class: cmd_question
@@ -263,16 +261,16 @@
   Hint: Just copy in the code!
 
 - Class: cmd_question
-  Output: Now regress Financial on ProfitsHalf using the df2 data set and store the result as reg3.
-  CorrectAnswer: reg3 <- lm(Financial ~ ProfitsHalf, data = df2)
-  AnswerTests: ifelse(exists('reg3'),identical(predict(reg3), predict(lm(Financial ~ ProfitsHalf, data = df2))),FALSE)
+  Output: Now regress Financial on ProfitsHalf with feols() using the df2 data set and store the result as reg3.
+  CorrectAnswer: reg3 <- feols(Financial ~ ProfitsHalf, data = df2)
+  AnswerTests: ifelse(exists('reg3'),class(reg3) == 'feols' & identical(predict(reg3), predict(lm(Financial ~ ProfitsHalf, data = df2))),FALSE)
   Hint: Use the exact same regression code as last time but use data = df2 nowand replace CorporateProfitsAdj with ProfitsHalf. Did you forget to save it as reg3? If you accidentally overwrite reg2 you might want to re-make it first.
 
 - Class: cmd_question
-  Output: Put both reg2 and reg3 into export_summs() so you can look at the results side-by-side.
-  CorrectAnswer: export_summs(reg2, reg3)
-  AnswerTests: omnitest(correctVal=export_summs(reg2, reg3))
-  Hint: Just type export_summs(reg2, reg3)
+  Output: Put both reg2 and reg3 into etable() so you can look at the results side-by-side.
+  CorrectAnswer: etable(reg2, reg3)
+  AnswerTests: omnitest(correctVal=etable(reg2, reg3))
+  Hint: Just type etable(reg2, reg3)
 
 - Class: mult_question
   Output: |- 
