@@ -10,11 +10,9 @@
   Output: |-
    This lesson will go through the probit and logit regression methods, used when your dependent variable is binary (0/1, False/True, No/Yes, etc), as well as generalized linear models generally.
    
-   For this lesson you will need the margins, lmtest, car, tidyverse, vtable, and jtools packages.
+   For this lesson you will need the marginaleffects, fixest, tidyverse, and vtable packages. Also make sure the car package is installed, although we won't be loading it.
    
-   You can install these by exiting out of here (bye() works), installing these with install.packages(c('margins','lmtest','car','tidyverse','vtable','jtools'), dependencies = TRUE), and coming back in with swirl().
-
-   **Note that export_summs relies on a package called broom, and old versions of broom don't work with margins. If you get problems using export_summs with margins, try updating the broom package with install.packages('broom')**
+   You can install these by exiting out of here (bye() works), installing these with install.packages(c('marginaleffects','fixest','tidyverse','vtable','car'), dependencies = TRUE), and coming back in with swirl().
 
 - Class: cmd_question
   Output: |-
@@ -34,17 +32,17 @@
  
 - Class: cmd_question
   Output: |-
-   Now library(jtools)
-  CorrectAnswer: library(jtools)
-  AnswerTests: omnitest(correctExpr='library(jtools)')
-  Hint: Copy in library(jtools)
+   Now library(fixest)
+  CorrectAnswer: library(fixest)
+  AnswerTests: omnitest(correctExpr='library(fixest)')
+  Hint: Copy in library(fixest)
  
 - Class: cmd_question
   Output: |-
-   Now library(margins)
-  CorrectAnswer: library(margins)
-  AnswerTests: omnitest(correctExpr='library(margins)')
-  Hint: Copy in library(margins)
+   Now library(marginaleffects)
+  CorrectAnswer: library(marginaleffects)
+  AnswerTests: omnitest(correctExpr='library(marginaleffects)')
+  Hint: Copy in library(marginaleffects)
 
 - Class: cmd_question
   Output: Now let's load in our data. Load in the TitanicSurvival data set, which comes from the carData package. Since we haven't actually loaded the carData package, we can load the data directly by adding a package='carData' option to our data() function. This data set tracks the demographics and survival of passengers aboard the Titanic ship disaster.
@@ -93,9 +91,9 @@
   Output: |-
    We will be predicting survival with the other variables in the data.
    
-   Let's start with a linear probability model. We're going to ue lm() to regress survival on the other variables in the data.
+   Let's start with a linear probability model. We're going to ue feols() to regress survival on the other variables in the data.
    
-   Then, after we estimate it, we're going to be sure to *always* use it with robust standard errors.
+   Then, after we estimate it, we're going to be sure to *always* use it with robust standard errors (se = 'hetero' in feols or etable).
    
    Why is it important to always run a linear probability model with heteroskedasticity-robust standard errors?
   AnswerChoices: Because the outcome is always 0 or 1, error variance will always be higher when the prediction is near .5 than when it is near 0 or 1; Because we should always run robust standard errors regardless of anything; Because the LPM model predicts outside the bounds of 0 and 1; Because it helps handle endogeneity
@@ -118,18 +116,18 @@
 
 - Class: cmd_question
   Output: |-
-   Okay! Now use lm() to regress surv_TF on the other variables in the data.
+   Okay! Now use feols() to regress surv_TF on the other variables in the data. Leave out se = 'hetero' for now, we'll add it in etable.
    
    Save the result as lpm
-  CorrectAnswer: lpm <- lm(surv_TF ~ sex + age + passengerClass, data = TitanicSurvival)
-  AnswerTests: ifelse(exists('lpm'),cor(predict(lpm),predict(lm(surv_TF ~ sex + age + passengerClass, data = TitanicSurvival))) > .99, FALSE)
-  Hint: Run a lm regression as normal, using surv_TF as the dependent variable and sex, age, and passengerClass as independent.
+  CorrectAnswer: lpm <- feols(surv_TF ~ sex + age + passengerClass, data = TitanicSurvival)
+  AnswerTests: ifelse(exists('lpm'),cor(predict(lpm),predict(feols(surv_TF ~ sex + age + passengerClass, data = TitanicSurvival))) > .99, FALSE)
+  Hint: Run a feols regression as normal, using surv_TF as the dependent variable and sex, age, and passengerClass as independent.
 
 - Class: cmd_question
-  Output: Use export_summs() with robust = TRUE to look at the result.
-  CorrectAnswer: export_summs(lpm, robust = TRUE)
-  AnswerTests: omnitest(correctExpr='export_summs(lpm, robust = TRUE)')
-  Hint: Send lpm to export_summs() with the robust = TRUE option.
+  Output: Use etable() with se = 'hetero' to look at the result.
+  CorrectAnswer: etable(lpm, se = 'hetero')
+  AnswerTests: omnitest(correctExpr='etable(lpm, se = "hetero"')
+  Hint: Send lpm to etable() with the se = 'hetero' option.
 
 
 - Class: figure
@@ -161,18 +159,18 @@
    
    We'll be using logit throughout the rest of this lesson, but everything could just as easily been done with probit with little difference.
    
-   Use glm() instead of lm(), and specify the option family = binomial(link = 'logit') to run our model using logistic regression. Save the result as logit.
+   Use feglm() from fixest instead of feols(), and specify the option family = binomial(link = 'logit') to run our model using logistic regression. Save the result as logit.
    
-   (by the way, exploring help(glm) and its family option is a great way to learn about all sorts of GLM model link functions and what they're used for! There's way more than just linear and binary variables in the world! Even more than GLM covers!)
-  CorrectAnswer: logit <- glm(survived ~ age + sex + passengerClass, data = TitanicSurvival, family = binomial(link = 'logit'))
-  AnswerTests: ifelse(exists('logit'), cor(predict(logit), predict(glm(survived ~ age + sex + passengerClass, data = TitanicSurvival, family = binomial(link = 'logit')))) > .95, FALSE)
-  Hint: Run the model just like a regular lm(), except use the glm() function, and add the argument family = binomial(link = 'logit').
+   (by the way, exploring help(feglm) or help(glm) and its family option is a great way to learn about all sorts of GLM model link functions and what they're used for! There's way more than just linear and binary variables in the world! Even more than GLM covers!)
+  CorrectAnswer: logit <- feglm(survived ~ age + sex + passengerClass, data = TitanicSurvival, family = binomial(link = 'logit'))
+  AnswerTests: ifelse(exists('logit'), cor(predict(logit), predict(feglm(survived ~ age + sex + passengerClass, data = TitanicSurvival, family = binomial(link = 'logit')))) > .95, FALSE)
+  Hint: Run the model just like a regular feols(), except use the feglm() function, and add the argument family = binomial(link = 'logit').
 
 - Class: cmd_question
-  Output: Use export_summs() with robust = TRUE to look at lpm and logit together.
-  CorrectAnswer: export_summs(lpm, logit, robust = TRUE)
-  AnswerTests: any_of_exprs('export_summs(lpm, logit, robust = TRUE)','export_summs(logit,lpm, robust = TRUE)')
-  Hint: Send both lpm and logit to export_summs. Don't forget the robust = TRUE option.
+  Output: Use etable() with se = 'hetero' to look at lpm and logit together.
+  CorrectAnswer: etable(lpm, logit, se = "hetero")
+  AnswerTests: any_of_exprs('etable(lpm, logit, se = "hetero")','etable(logit, lpm, se = "hetero")')
+  Hint: Send both lpm and logit to etable. Don't forget the se = 'hetero' option.
 
 - Class: mult_question
   Output: How can we interpret the -.49 coefficient? Assume each option has "controlling for age and passenger class..." tacked onto the beginning.
@@ -261,45 +259,41 @@
 
 - Class: cmd_question
   Output: |-
-   Send logit to margins() from the margins package to get the marginal effects of each of the variables. Store the result as margfx.
+   Send logit to summary(marginaleffects()) from the marginaleffects package to get the marginal effects of each of the variables. Store the result as margfx.
    
    No options should be necessary. By default it will produce Average Marginal Effects (i.e. it will calculate the marginal effect for each person, since marginal effects vary based on the values of the independent variables) and average those. That's what we want! It's usually what we want.
-  CorrectAnswer: margfx <- margins(logit)
-  AnswerTests: any_of_exprs('margfx <- margins(logit)', 'margfx <- logit %>% margins()')
-  Hint: Just put logit inside the margins() function.
+  CorrectAnswer: margfx <- summary(marginaleffects(logit))
+  AnswerTests: any_of_exprs('margfx <- summary(marginaleffects(logit))', 'margfx <- logit %>% marginaleffects() %>% summary()')
+  Hint: Just put logit inside the marginaleffects() function and then put that inside of summary().
 
 - Class: cmd_question
-  Output: Now use export_summs() with robust = TRUE to look at lpm and margfx together. Add the option statistics = c(N = "nobs.1") to keep things clean.
-  CorrectAnswer: export_summs(lpm, margfx, robust = TRUE, statistics = c(N = "nobs.1"))
-  AnswerTests: omnitest(correctExpr='export_summs(lpm, margfx, robust = TRUE, statistics = c(N = "nobs.1"))')
-  Hint: Send both lpm and margfx to export_summs() with the statistics = c(N = "nobs.1") argument and the robust = TRUE argument.
+  Output: Look at margfx to see how it compares to our LPM results from before.
+  CorrectAnswer: margfx
+  AnswerTests: omnitest(correctExpr='margfx')
+  Hint: Just type out margfx.
 
 - Class: text
   Output: Looks like LPM and logit marginal effects give very similar answers in this case! Although do keep in mind that won't always be true.
 
 - Class: cmd_question
   Output: |-
-   The margins() command we did got us average marginal effects, but maybe we want the marginal effect *for a particular type of person*.
+   The marginaleffects() command we did got us average marginal effects, but maybe we want the marginal effect *for a particular type of person*.
    
-   Look at help(margins, package = 'margins') (the package = 'margins' part may be necessary because there's another margins function in a different, popular package) and focus on the at option (and the examples at the bottom of using at) to see the syntax for calculating the marginal effect *at* a particular set of values.
-  CorrectAnswer: help(margins, package = "margins")
-  AnswerTests: omnitest(correctExpr='help(margins, package = "margins")')
-  Hint: Type help(margins, package = "margins")
+   We can use the newdata argument to get marginal effects at particular values by setting variables to those values in the data we get marginal effects for.
+   
+   Create a new dataset age60 that takes the original TitanicSurvival data and sets the age of everyone to 60 with mutate().
+  CorrectAnswer: age60 <- TitanicSurvival %>% mutate(age = 60)
+  AnswerTests: ifelse(exists('age60'), !is.null(age60[['age']]) & min(age60[['age']] == 60) == 1, FALSE)
+  Hint: Do age60 <- TitanicSurvival %>% mutate(age = 60) to overwrite all the ages.
 
 - Class: cmd_question
   Output: |-
-   Use margins to calculate the marginal effects at age = 60. Store the result as fx60.
+   Use summary(marginaleffects()) to calculate the marginal effects at age = 60 by giving it newdata = age60.
    
-   Note this will not calculate the marginal effects *among 60-year-olds*. Rather, it will calculate the marginal effect of each variable *as though everyone's index were what it would be if age were 60*.
-  CorrectAnswer: fx60 <- margins(logit, at = list(age = 60))
-  AnswerTests: omnitest(correctExpr='fx60 <- margins(logit, at = list(age = 60))')
-  Hint: Take the margins command from before and add at = list(age = 60) as an argument.
-
-- Class: cmd_question
-  Output: Use export_summs() to look at lpm, margfx, and fx60 together, with the statistics = c(N = "nobs.1") argument. You will get a warning about there not being a nobs default method - don't worry about it.
-  CorrectAnswer: export_summs(lpm, margfx, fx60, statistics = c(N = "nobs.1"))
-  AnswerTests: omnitest(correctExpr='export_summs(lpm, margfx, fx60, statistics = c(N = "nobs.1"))')
-  Hint: Send lpm, margfx, and fx60 all to export_summs() with the statistics = c(N = "nobs.1") argument.
+   Note this will not calculate the marginal effects *among 60-year-olds*. Rather, it will calculate the marginal effect of each variable *as though everyone's index were what it would be if age were 60*. Our little newdata approach here should make that clear!
+  CorrectAnswer: summary(marginaleffects(logit, newdata = age60))
+  AnswerTests: any_of_exprs('summary(marginaleffects(logit, newdata = age60))', 'logit %>% marginaleffects(newdata = age60) %>% summary()')
+  Hint: Do the same marginaleffects as last time, but add newdata = age60.
 
 - Class: cmd_question
   Output: |-
@@ -307,36 +301,12 @@
    
    We will be testing if the passengerClass variable matters.
    
-   First, we will use linearHypothesis from car as we normally do.
+   First, we will use wald from fixest as we normally do.
    
-   We haven't loaded the car package, but we can still access functions from it using car::
-   
-   Use car::linearHypothesis to test whether passengerClass2nd and passengerClass3rd are jointly 0 in logit.
-  CorrectAnswer: car::linearHypothesis(logit, c('passengerClass2nd','passengerClass3rd'))
-  AnswerTests: omnitest(correctExpr='car::linearHypothesis(logit, c("passengerClass2nd","passengerClass3rd"))')
-  Hint: Use linearHypothesis as normal, except call it with car::linearHypothesis. logit is the model, and we are testing c('passengerClass2nd','passengerClass3rd').
-
-- Class: cmd_question
-  Output: |-
-   Although that one doesn't operate by likelihood ratio test.
-   
-   First we need to estimate a restricted model without the variables we want to test.
-   
-   Do another logit regression, this time of survived on sex and age but NOT passengerClass, and store it as restricted.
-  CorrectAnswer: restricted <- glm(survived ~ age + sex, data = TitanicSurvival, family = binomial(link = 'logit'))
-  AnswerTests: ifelse(exists('restricted'),cor(predict(restricted), predict(glm(survived ~ age + sex, data = TitanicSurvival, family = binomial(link = 'logit')))) > .99, FALSE)
-  Hint: Use the same glm() code from before but omit passengerClass.
-
-- Class: cmd_question
-  Output: |-
-   Now we will do our likelihood ratio test using lrtest from the lmtest package.
-   
-   We haven't loaded lmtest, but we can just use lmtest::lrtest().
-   
-   Send both logit and restricted to lmtest::lrtest.
-  CorrectAnswer: lmtest::lrtest(logit, restricted)
-  AnswerTests: omnitest(correctExpr='lmtest::lrtest(logit, restricted)')
-  Hint: Make logit and restricted the first and second arguments of lmtest::lrtest().
+   Use wald to test whether passengerClass2nd and passengerClass3rd are jointly 0 in logit. Remember, you can just give it 'passengerClass' and it will get all variables that start that way.
+  CorrectAnswer: wald(logit, 'passengerClass')
+  AnswerTests: omnitest(correctExpr='wald(logit, 'passengerClass')')
+  Hint: Use wald as normal. logit is the model, and we are testing 'passengerClass'.
 
 - Class: mult_question
   Output: Based on this output, are the passengerClass binary variables jointly significant at the 1% level?

@@ -19,7 +19,7 @@
    
    This lesson will work through an example of the regression discontinuity (RD) method.
    
-   Before starting, you should have the **tidyverse**,  **rdrobust**, **haven**, **vtable**, and **jtools** packages installed. Please exit now and install these packages if you do not have them.
+   Before starting, you should have the **tidyverse**,  **rdrobust**, **haven**, **vtable**, and **fixest** packages installed. Please exit now and install these packages if you do not have them.
 
 
 - Class: text
@@ -48,9 +48,9 @@
 
 - Class: cmd_question
   Output: |- 
-   And now load jtools.
-  CorrectAnswer: library(jtools)
-  AnswerTests: omnitest(correctExpr='library(jtools)')
+   And now load fixest.
+  CorrectAnswer: library(fixest)
+  AnswerTests: omnitest(correctExpr='library(fixest)')
   Hint: Take the name of the package and feed that to the library() function.
 
 - Class: cmd_question
@@ -130,18 +130,18 @@
    
    You can accomplish this using the following code: 
    
-   small_deaths_by_age <- small_deaths_by_age %>% mutate(age_21_or_over = ifelse(agecell >= 21, 1, 0))
+   small_deaths_by_age <- small_deaths_by_age %>% mutate(age_21_or_over = agecell >= 21)
    
    Copy this code into the console to create your indicator variable
-  CorrectAnswer: small_deaths_by_age <- small_deaths_by_age %>% mutate(age_21_or_over = ifelse(agecell >= 21, 1, 0))
-  AnswerTests: omnitest(correctExpr='small_deaths_by_age <- small_deaths_by_age %>% mutate(age_21_or_over = ifelse(agecell >= 21, 1, 0))')
+  CorrectAnswer: small_deaths_by_age <- small_deaths_by_age %>% mutate(age_21_or_over = agecell >= 21)
+  AnswerTests: omnitest(correctExpr='small_deaths_by_age <- small_deaths_by_age %>% mutate(age_21_or_over = agecell >= 21)')
   Hint: Just copy the code into the console!
   
 - Class: mult_question
   Output: |- 
    Suppose that I run the following regression using these data and our new indicator variable: 
    
-   lm(all ~ age_21_or_over, data = small_deaths_by_age)
+   feols(all ~ age_21_or_over, data = small_deaths_by_age)
 
    Why is this not a proper regression discontinuity strategy? 
   AnswerChoices: It does not control continuously for age, which is positively related to mortality;The standard errors are wrong;There are multiple jumps in mortality in this dataset;We defined the indictor variable incorrectly
@@ -161,15 +161,15 @@
    Instead, estimate a regression with mortality rates as the dependent variable and both the 21 or over indicator **and** age as independent variables.
    
    Save your result as model_1
-  CorrectAnswer: model_1 <- lm(all ~ agecell + age_21_or_over, data = small_deaths_by_age)
-  AnswerTests: any_of_exprs('model_1 <- lm(all ~ agecell + age_21_or_over , data = small_deaths_by_age)', 'model_1 <- lm(all ~ age_21_or_over + agecell , data = small_deaths_by_age)')
+  CorrectAnswer: model_1 <- feols(all ~ agecell + age_21_or_over, data = small_deaths_by_age)
+  AnswerTests: any_of_exprs('model_1 <- feols(all ~ agecell + age_21_or_over , data = small_deaths_by_age)', 'model_1 <- lm(all ~ age_21_or_over + agecell , data = small_deaths_by_age)')
   Hint: Make sure that you are including both agecell and age_21_or_over as independent variables!
   
 - Class: cmd_question
   Output: |- 
-   Use export_summs on your regression output to look at the results
-  CorrectAnswer: export_summs(model_1)
-  AnswerTests: omnitest(correctVal='export_summs(model_1)')
+   Use etable on your regression output to look at the results
+  CorrectAnswer: etable(model_1)
+  AnswerTests: omnitest(correctVal='etable(model_1)')
   Hint:
   
 - Class: mult_question
@@ -188,21 +188,22 @@
    
    This does not appear to be true -- mortality is increasing before age 21 and decreasing afterwords.
    
-   We can account for this by interacting our continuous age variable with our age 21 indicator variable. This allows the effect of age on mortality to differ depending on whether you are older or younger than age 21.
+   We can account for this by interacting our continuous age variable with our age 21 indicator variable. This allows the effect of age on mortality to differ depending on whether you are older or younger than age 21. This is a varying-slopes linear RDD model.
  
    Copy the following code to estimate a model that allows the effect of age on mortality to differ across the age 21 threshold:
    
-   model_2 <- lm(formula = all ~ agecell * age_21_or_over, data = small_deaths_by_age)
-  CorrectAnswer: model_2 <- lm(formula = all ~  agecell * age_21_or_over, data = small_deaths_by_age)
-  AnswerTests: omnitest(correctExpr='model_2 <- lm(formula = all ~ agecell * age_21_or_over, data = small_deaths_by_age)')
+   model_2 <- feols(all ~ agecell * age_21_or_over, data = small_deaths_by_age)
+  CorrectAnswer: model_2 <- feols(all ~  agecell * age_21_or_over, data = small_deaths_by_age)
+  AnswerTests: omnitest(correctExpr='model_2 <- feols(all ~ agecell * age_21_or_over, data = small_deaths_by_age)')
   Hint: Just copy the code into the console!
    
+
    
 - Class: cmd_question
   Output: |- 
-   Use export_summs on your regression output in model_2 to look at the results
-  CorrectAnswer: export_summs(model_2)
-  AnswerTests: omnitest(correctExpr='export_summs(model_2)')
+   Type in model_2 directly to look at the results (we're doing this instead of etable so we can get the exact coefficient names, which we'll need for the next step).
+  CorrectAnswer: model_2
+  AnswerTests: omnitest(correctExpr='model_2')
   Hint:
    
 
@@ -210,30 +211,60 @@
   Output: |- 
    Given these estimated coefficients, what is the predicted mortality rate (per 10,000 people) for someone whose age is 20.95?
    
-   You should use the coef functions to extract coefficients from the regression object. For example, remember that coef(model_2)[[1]] will return the constant. 
-  CorrectAnswer: coef(model_2)[[1]] + coef(model_2)[[2]]*20.95
-  AnswerTests: omnitest(correctVal=coef(model_2)[[1]] + coef(model_2)[[2]]*20.95)
+   You should use the coef functions to extract coefficients from the regression object. For example, remember that coef(model_2)[['(Intercept)']] will return the intercept coefficient.
+  CorrectAnswer: coef(model_2)[['(Intercept)']] + coef(model_2)[['agecell']]*20.95
+  AnswerTests: omnitest(correctVal=coef(model_2)[['(Intercept)']] + coef(model_2)[['agecell']]*20.95)
   Hint: Write out the regression equation to visualize your calculation
 
 - Class: cmd_question
   Output: |- 
    Given these coefficients, what is the predicted mortality rate (per 10,000 people) for someone whose age is 21.05
 
-   You should use the coef functions to extract coefficients from the regression object. For example, remember that coef(model_2)[[1]] will return the constant. 
-  CorrectAnswer: coef(model_2)[[1]] + coef(model_2)[[2]]*21.05 + coef(model_2)[[3]] + coef(model_2)[[4]]*21.05
-  AnswerTests: omnitest(correctVal=coef(model_2)[[1]] + coef(model_2)[[2]]*21.05 + coef(model_2)[[3]] + coef(model_2)[[4]]*21.05)
+   You should use the coef functions to extract coefficients from the regression object. For example, remember that coef(model_2)[['(Intercept)']] will return the constant. 
+  CorrectAnswer: coef(model_2)[['(Intercept)']] + coef(model_2)[['agecell']]*21.05 + coef(model_2)[['age_21_or_overTRUE']] + coef(model_2)[['agecell:age_21_or_overTRUE']]*21.05
+  AnswerTests: omnitest(correctVal=coef(model_2)[['(Intercept)']] + coef(model_2)[['agecell']]*21.05 + coef(model_2)[['age_21_or_overTRUE']] + coef(model_2)[['agecell:age_21_or_overTRUE']]*21.05)
   Hint: Write out the regression equation to visualize your calculation
+
+- Class: cmd_question
+  Output: |- 
+   That sure was a lot of work to get an RDD result and it isn't even very precise (why .05 above and below? And what's the standard error?). Let's create a centered age variable so that the regression gives us the right answer immediately.
+   
+   Use mutate to create a new variable age_centered equal to agecell minus the age cutoff of 21. Make sure to overwrite your small_deaths_by_age data to save your new variable.
+  CorrectAnswer: small_deaths_by_age <- small_deaths_by_age %>% mutate(age_centered = agecell - 21)
+  AnswerTests: ifelse(is.null(small_deaths_by_age[['age_centered']]), FALSE, min(small_deaths_by_age[['age_centered']] == small_deaths_by_age[['agecell']] - 21) == 1)
+  Hint: Use mutate(age_centered = agecell - 21) since 21 is the cutoff.
+  
+- Class: cmd_question
+  Output: |-
+   Redo your varying-slopes linear RDD model (model_2) from before, but use age_centered instead of agecell. Save the result as model_2b.
+  CorrectAnswer: model_2b <- feols(all ~ age_centered * age_21_or_over, data = small_deaths_by_age)
+  AnswerTests: ifelse(exists('model_2b'), class(model_2b) == 'fixest' & 'age_centered' %in% names(model_2b$coefficients) & identical(predict(model_2b), predict(feols(all ~ age_centered * age_21_or_over, data = small_deaths_by_age))), FALSE)
+  Hint: Copy the model_2 <- feols(all ~ agecell * age_21_or_over, data = small_deaths_by_age) code from before but modify it to be age_centered instead of agecell (and model_2b instead of model_2)
+
+- Class: cmd_question
+  Output: |- 
+   Use etable to look at model_2b.
+  CorrectAnswer: etable(model_2b)
+  AnswerTests: omnitest(correctExpr='etable(model_2b)')
+  Hint: Just do etable(model_2b)
+  
+- Class: mult_question
+  Output: What is the regression discontinuity estimate (using a linear varying-slopes model) for the effect of being legally able to drink on traffic deaths?
+  AnswerChoices: 93.62;0.8270;7.663;-3.603;A calculation that involves multiple coefficients
+  CorrectAnswer: 7.663
+  AnswerTests: omnitest(correctVal='7.663')
+  Hint: The RDD estimate is the jump from just below to just above. What coefficent gives the jump in the line right at the cutoff when the age variable is centered?
 
 
 - Class: cmd_question
   Output: |- 
-   Great work! This implies that mortality is predicted to increase by approximately 7.6 per 10,000 people, or 8%, over the course of just 1/10 of a year! Be safe out there....  
+   Great work! This implies that mortality is predicted to increase by approximately 7.7 per 10,000 people, or 8%, over the course of just 1/10 of a year! Be safe out there....  
    
    Copy the following code to graphically visualize the results of your regression discontinuity analysis:
    
-   small_deaths_by_age %>% mutate( age_group = as.factor(age_21_or_over)) %>%  ggplot(aes(x = agecell, y = all, color = age_group)) + geom_point() + geom_vline(xintercept = 21) +  geom_smooth(method = "lm", se = FALSE)
-  CorrectAnswer: small_deaths_by_age %>% mutate( age_group = as.factor(age_21_or_over)) %>%  ggplot(aes(x = agecell, y = all, color = age_group)) + geom_point() + geom_vline(xintercept = 21) +  geom_smooth(method = "lm", se = FALSE)
-  AnswerTests: omnitest(correctExpr='small_deaths_by_age %>% mutate( age_group = as.factor(age_21_or_over)) %>%  ggplot(aes(x = agecell, y = all, color = age_group)) + geom_point() + geom_vline(xintercept = 21) +  geom_smooth(method = "lm", se = FALSE)')
+   ggplot(small_deaths_by_age, aes(x = agecell, y = all, color = age_21_or_over)) + geom_point() + geom_vline(xintercept = 21) +  geom_smooth(method = "lm", se = FALSE)
+  CorrectAnswer: ggplot(small_deaths_by_age, aes(x = agecell, y = all, color = age_21_or_over)) + geom_point() + geom_vline(xintercept = 21) +  geom_smooth(method = "lm", se = FALSE)
+  AnswerTests: omnitest(correctExpr='ggplot(small_deaths_by_age, aes(x = agecell, y = all, color = age_21_or_over)) + geom_point() + geom_vline(xintercept = 21) +  geom_smooth(method = "lm", se = FALSE)')
   Hint: Copy the graphics code
 
 
@@ -247,9 +278,11 @@
   
    The first argument of rdrobust indicates the dataframe and outcome variable to use. The second indicates the running variable. The "c" option tells rdrobust the cutoff -- where in the running variable we think that there is a discontinuity. Here the cutoff is at age 21. 
    
-   The "p" option tells rdrobust that we want to estimate linear slopes on either side of a regression. To estimate a second-order polynomial instead, we would type "p = 2". The "h" option tells rdrobust the bandwidth around the cutoff we want to use to estimate the model. Here, we are using the two years on either side of the cutoff so we enter 2.
+   The "p" option tells rdrobust that we want to estimate linear slopes on either side of a regression. To estimate a second-order polynomial instead, we would type "p = 2". The "h" option tells rdrobust the bandwidth around the cutoff we want to use to estimate the model. Here, we are using the two years on either side of the cutoff so we enter 2. 
    
    Finally, I specify that the kernel I want to use is a uniform distribution. This means I want to weight observations the same no matter how far they are from the cutoff.
+   
+   **Note that we've specified p and h and the uniform distribution here to show how they can be specified; these aren't, like, the universally correct values of p and h or kernel or anything.**
    
    Copy the rdrobust code above to estimate this model and save it to the object model_3
   CorrectAnswer: model_3 <- rdrobust(small_deaths_by_age$all, small_deaths_by_age$agecell, c = 21, p = 1, h = 2, kernel = "uniform")
