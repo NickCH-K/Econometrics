@@ -126,7 +126,7 @@
 - Class: cmd_question
   Output: Use etable() with se = 'hetero' to look at the result.
   CorrectAnswer: etable(lpm, se = 'hetero')
-  AnswerTests: omnitest(correctExpr='etable(lpm, se = "hetero"')
+  AnswerTests: omnitest(correctExpr='etable(lpm, se = "hetero")')
   Hint: Send lpm to etable() with the se = 'hetero' option.
 
 
