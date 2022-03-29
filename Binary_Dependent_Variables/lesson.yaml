@@ -305,7 +305,7 @@
    
    Use wald to test whether passengerClass2nd and passengerClass3rd are jointly 0 in logit. Remember, you can just give it 'passengerClass' and it will get all variables that start that way.
   CorrectAnswer: wald(logit, 'passengerClass')
-  AnswerTests: omnitest(correctExpr='wald(logit, 'passengerClass')')
+  AnswerTests: omnitest(correctExpr='wald(logit, "passengerClass")')
   Hint: Use wald as normal. logit is the model, and we are testing 'passengerClass'.
 
 - Class: mult_question
