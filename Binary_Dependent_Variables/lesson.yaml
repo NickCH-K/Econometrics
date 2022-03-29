@@ -162,8 +162,8 @@
    Use feglm() from fixest instead of feols(), and specify the option family = binomial(link = 'logit') to run our model using logistic regression. Save the result as logit.
    
    (by the way, exploring help(feglm) or help(glm) and its family option is a great way to learn about all sorts of GLM model link functions and what they're used for! There's way more than just linear and binary variables in the world! Even more than GLM covers!)
-  CorrectAnswer: logit <- feglm(survived ~ age + sex + passengerClass, data = TitanicSurvival, family = binomial(link = 'logit'))
-  AnswerTests: ifelse(exists('logit'), cor(predict(logit), predict(feglm(survived ~ age + sex + passengerClass, data = TitanicSurvival, family = binomial(link = 'logit')))) > .95, FALSE)
+  CorrectAnswer: logit <- feglm(surv_TF ~ age + sex + passengerClass, data = TitanicSurvival, family = binomial(link = 'logit'))
+  AnswerTests: ifelse(exists('logit'), cor(predict(logit), predict(feglm(surv_TF ~ age + sex + passengerClass, data = TitanicSurvival, family = binomial(link = 'logit')))) > .95, FALSE)
   Hint: Run the model just like a regular feols(), except use the feglm() function, and add the argument family = binomial(link = 'logit').
 
 - Class: cmd_question
