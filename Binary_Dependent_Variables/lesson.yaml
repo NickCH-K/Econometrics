@@ -275,25 +275,39 @@
 - Class: text
   Output: Looks like LPM and logit marginal effects give very similar answers in this case! Although do keep in mind that won't always be true.
 
-- Class: cmd_question
+- Class: text
   Output: |-
    The marginaleffects() command we did got us average marginal effects, but maybe we want the marginal effect *for a particular type of person*.
    
-   We can use the newdata argument to get marginal effects at particular values by setting variables to those values in the data we get marginal effects for.
+   We can use the datagrid() function to make a data set with variables set to whatever value we like.
    
-   Create a new dataset age60 that takes the original TitanicSurvival data and sets the age of everyone to 60 with mutate().
+   For example, marginaleffects(my_model, datagrid()) will give the marginal effects for my_model with the original data set entirely at its means.
+   
+   Or, marginaleffects(my_model, datagrid(X = 1, grid.type = 'counterfactual')) will give the average marginal effects as though everyone had their X value set to 1.
+
+- Class: cmd_question
+  Output: |-
+
   CorrectAnswer: age60 <- TitanicSurvival %>% mutate(age = 60)
   AnswerTests: ifelse(exists('age60'), !is.null(age60[['age']]) & min(age60[['age']] == 60) == 1, FALSE)
   Hint: Do age60 <- TitanicSurvival %>% mutate(age = 60) to overwrite all the ages.
 
 - Class: cmd_question
   Output: |-
-   Use summary(marginaleffects()) to calculate the marginal effects at age = 60 by giving it newdata = age60.
+   The marginaleffects() command we did got us average marginal effects, but maybe we want the marginal effect *for a particular type of person*.
+   
+   We can use the datagrid() function to make a data set with variables set to whatever value we like.
+   
+   For example, marginaleffects(my_model, datagrid()) will give the marginal effects for my_model with the original data set entirely at its means.
+   
+   Or, marginaleffects(my_model, datagrid(X = 1, grid.type = 'counterfactual')) will give the average marginal effects as though everyone had their X value set to 1. The grid.type = 'counterfactual' tells it to use the original data but with some values set counterfactually.
+   
+   Use summary(marginaleffects()) to calculate the marginal effects at age = 60.
    
    Note this will not calculate the marginal effects *among 60-year-olds*. Rather, it will calculate the marginal effect of each variable *as though everyone's index were what it would be if age were 60*. Our little newdata approach here should make that clear!
-  CorrectAnswer: summary(marginaleffects(logit, newdata = age60))
-  AnswerTests: any_of_exprs('summary(marginaleffects(logit, newdata = age60))', 'logit %>% marginaleffects(newdata = age60) %>% summary()')
-  Hint: Do the same marginaleffects as last time, but add newdata = age60.
+  CorrectAnswer: summary(marginaleffects(logit, datagrid(age = 60, grid.type = "counterfactual"))
+  AnswerTests: any_of_exprs('summary(marginaleffects(logit, datagrid(age = 60, grid.type = "counterfactual"))', 'logit %>% marginaleffects(age = 60, grid.type = "counterfactual") %>% summary()')
+  Hint: Do the same marginaleffects as last time, but add datagrid(age = 60, grid.type = "counterfactual").
 
 - Class: cmd_question
   Output: |-
