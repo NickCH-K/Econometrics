@@ -11,11 +11,11 @@
   Output: |-
    This lesson will focus on instrumental variables and how to perform IV in R.
    
-   It will require the use of the packages **tidyverse**, **jtools**, **fixest**, and **AER**.
+   It will require the use of the packages **tidyverse**, **fixest**, and **AER**.
    
    If you do not have those installed, you can exit out of here (bye() works), install them with
    
-   install.packages(c('tidyverse','jtools','fixest','AER'), dependencies = TRUE)
+   install.packages(c('tidyverse','fixest','AER'), dependencies = TRUE)
    
    and return here with swirl()
 
@@ -27,13 +27,6 @@
   CorrectAnswer: library(tidyverse)
   AnswerTests: omnitest(correctExpr='library(tidyverse)')
   Hint: Put in library(tidyverse)
-
-- Class: cmd_question
-  Output: |-
-   Now library(jtools)
-  CorrectAnswer: library(jtools)
-  AnswerTests: omnitest(correctExpr='library(jtools)')
-  Hint: Put in library(jtools)
 
 - Class: cmd_question
   Output: |-
@@ -94,16 +87,16 @@
   Output: |-
    Now let's get a raw association between packs and prices
    
-   Regress the logarithm (log()) of packs on the logarithm of inflation-adjusted prices and store the result as ols.
-  CorrectAnswer: ols <- lm(log(packs) ~ log(rprice), data = CigarettesSW)
-  AnswerTests: ifelse(exists('ols'), cor(predict(ols), predict(lm(log(packs) ~ log(rprice), data = CigarettesSW))) > .99, FALSE)
+   Use feols() to regress the logarithm (log()) of packs on the logarithm of inflation-adjusted prices and store the result as ols.
+  CorrectAnswer: ols <- feols(log(packs) ~ log(rprice), data = CigarettesSW)
+  AnswerTests: ifelse(exists('ols'), class(ols) == 'fixest' &  cor(predict(ols), predict(feols(log(packs) ~ log(rprice), data = CigarettesSW))) > .99, FALSE)
   Hint: Just run a regression as normal of log(packs) on log(rprice).
 
 - Class: cmd_question
-  Output: Look at the result using export_summs()
-  CorrectAnswer: export_summs(ols)
-  AnswerTests: any_of_exprs('export_summs(ols)','ols %>% export_summs()')
-  Hint: Send ols to export_summs()
+  Output: Look at the result using etable()
+  CorrectAnswer: etable(ols)
+  AnswerTests: any_of_exprs('etable(ols)','ols %>% etable()')
+  Hint: Send ols to etable()
 
 - Class: mult_question
   Output: How can we interpret the -1.21 coefficient?
@@ -154,10 +147,10 @@
   Hint: Use feols with two parts to the formula- log(packs) regressed on 1 in the first, and log(rprice) regressed on taxdiff in the second.
 
 - Class: cmd_question
-  Output: Use export_summs() to look at ols and iv1 together. Note that feols will rename the endogenous variable to start with "fit_", reminding you that it is using the fitted/predicted values from that first stage.
-  CorrectAnswer: export_summs(ols, iv1)
-  AnswerTests: omnitest(correctExpr='export_summs(ols, iv1)')
-  Hint: Send both ols and iv1, in that order, to export_summs()
+  Output: Use etable() to look at ols and iv1 together. Note that feols will rename the endogenous variable to start with "fit_", reminding you that it is using the fitted/predicted values from that first stage.
+  CorrectAnswer: etable(ols, iv1)
+  AnswerTests: omnitest(correctExpr='etable(ols, iv1)')
+  Hint: Send both ols and iv1, in that order, to etable()
 
 - Class: mult_question
   Output: Assuming that our instrument is relevant and valid, how can we best interpret the -1.08 coefficient?
@@ -175,13 +168,13 @@
 
 
 - Class: cmd_question
-  Output: Get the "first stage" model from the iv1 object using summary(iv1, stage = 1), showing the impact of the instrument on the endogenous variable. (note iv1$iv_first_stage would also work, especially if you were sending to export_summs)
+  Output: Get the "first stage" model from the iv1 object using summary(iv1, stage = 1), showing the impact of the instrument on the endogenous variable. (note iv1$iv_first_stage would also work)
   CorrectAnswer: summary(iv1, stage = 1)
   AnswerTests: omnitest(correctVal='summary(iv1, stage = 1)')
   Hint: Use Just send iv1 to the summary() function, and add the stage = 1 option.
 
 - Class: mult_question
-  Output: Note the F-test at the bottom of the summary (note this won't show up automatically in export_summs, which is why we did summary instead). Does this result raise any clear concerns about taxdiff being a weak instrument?
+  Output: Note the F-test at the bottom of the summary (note this won't show up automatically in etable, which is why we did summary instead). Does this result raise any clear concerns about taxdiff being a weak instrument?
   AnswerChoices: No; Yes; This provides no information about being a weak instrument
   CorrectAnswer: No
   AnswerTests: omnitest(correctVal='No')
@@ -255,9 +248,9 @@
 
 - Class: cmd_question
   Output: |-
-   Finally, use plot_coefs() to plot ols, iv1, and iv2. 
+   Finally, use coefplot() to plot ols, iv1, and iv2. 
    
    Take note not just of how the coefficient changes, but also the confidence intervals do. IV is a lot less precise! Although predicting the endogenous variable better (as we do with the addition of the second instrument) helps a lot.
-  CorrectAnswer: plot_coefs(ols,iv1,iv2)
-  AnswerTests: omnitest(correctExpr='plot_coefs(ols,iv1,iv2)')
-  Hint: Send ols, iv1, and iv2 to plot_coefs().
+  CorrectAnswer: coefplot(ols,iv1,iv2)
+  AnswerTests: omnitest(correctExpr='coefplot(ols,iv1,iv2)')
+  Hint: Send ols, iv1, and iv2 to coefplot().

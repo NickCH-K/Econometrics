@@ -16,9 +16,9 @@
 
 - Class: text
   Output: |-
-   For this lesson you will need the packages **tidyverse**, **jtools**, **huxtable**, **fixest**, and **vtable**
+   For this lesson you will need the packages **tidyverse**, **fixest**, and **vtable**
    
-   If you don't have these, you'll need to install them. You can Escape or bye() out of this, install them with install.packages(c('tidyverse','jtools','fixest','vtable'), dependencies = TRUE), and then swirl() to get back in.
+   If you don't have these, you'll need to install them. You can Escape or bye() out of this, install them with install.packages(c('tidyverse','fixest','vtable'), dependencies = TRUE), and then swirl() to get back in.
    
 - Class: cmd_question
   Output: |-
@@ -28,18 +28,14 @@
    
    library(vtable)
    
-   library(jtools)
-   
    library(fixest)
   CorrectAnswer: |-
    library(tidyverse)
    
    library(vtable)
    
-   library(jtools)
-   
    library(fixest)
-  AnswerTests: sum(paste0('package:',c('tidyverse','vtable','jtools','fixest')) %in% search()) == 4
+  AnswerTests: sum(paste0('package:',c('tidyverse','vtable','fixest')) %in% search()) == 3
   Hint: Copy/paste! Or just type skip()
 
 
@@ -168,17 +164,17 @@
    
    Before worrying about that, or any other issues, let's get a baseline result.
    
-   Use lm() to get the effect of being assigned_coupon on your next_purchase. Save the result as model1.
+   Use feols() to get the effect of being assigned_coupon on your next_purchase. Save the result as model1.
    
-  CorrectAnswer: model1 <- lm(next_purchase ~ assigned_coupon, data = df)
-  AnswerTests: ifelse(exists('model1'),cor(predict(model1),predict(lm(next_purchase ~ assigned_coupon, data = df)))>.99, FALSE)
+  CorrectAnswer: model1 <- feols(next_purchase ~ assigned_coupon, data = df)
+  AnswerTests: ifelse(exists('model1'),cor(predict(model1),predict(feols(next_purchase ~ assigned_coupon, data = df)))>.99, FALSE)
   Hint: Regress next_purchase on assigned_coupon and save the result as model1.
 
 - Class: cmd_question
-  Output: Use export_summs() to look at the result.
-  CorrectAnswer: export_summs(model1)
-  AnswerTests: omnitest(correctExpr='export_summs(model1)')
-  Hint: Send model1 to export_summs.
+  Output: Use etable() to look at the result.
+  CorrectAnswer: etable(model1)
+  AnswerTests: omnitest(correctExpr='etable(model1)')
+  Hint: Send model1 to etable.
 
 - Class: mult_question
   Output: Given that we used the *assigned* treatment but not necessarily whether they *received* treatment in the model we just ran, what kind of result did we get?
@@ -235,16 +231,16 @@
    
    (Make sure you can see where we got those conclusions from the table)
    
-   Let's perform a regression of attrit on sent_coupon, last_purchase, and their interaction to see what's going on. Save the result as attritmodel
-  CorrectAnswer: attritmodel <- lm(attrit ~ last_purchase*sent_coupon, data = df)
-  AnswerTests: ifelse(exists('attritmodel'),cor(predict(attritmodel),predict(lm(attrit ~ last_purchase*sent_coupon, data = df)))>.99, FALSE)
+   Let's perform a regression using feols() of attrit on sent_coupon, last_purchase, and their interaction to see what's going on. Save the result as attritmodel
+  CorrectAnswer: attritmodel <- feols(attrit ~ last_purchase*sent_coupon, data = df)
+  AnswerTests: ifelse(exists('attritmodel'),class(attritmodel) == 'fixest' & cor(predict(attritmodel),predict(feols(attrit ~ last_purchase*sent_coupon, data = df)))>.99, FALSE)
   Hint: You can regress Y on X, Z, and X*Z with Y~X*Z.
 
 - Class: cmd_question
-  Output: Look at the results with export_summs() with the digits = 3 option.
-  CorrectAnswer: export_summs(attritmodel, digits = 3)
-  AnswerTests: omnitest(correctExpr='export_summs(attritmodel, digits = 3)')
-  Hint: Just send attritmodel to export_summs(digits = 3) 
+  Output: Look at the results with etable() with the digits = 3 option.
+  CorrectAnswer: etable(attritmodel, digits = 3)
+  AnswerTests: omnitest(correctExpr='etable(attritmodel, digits = 3)')
+  Hint: Just send attritmodel to etable(digits = 3) 
 
 
 - Class: mult_question
@@ -310,20 +306,20 @@
 
 - Class: cmd_question
   Output: |-
-   Run another intent-to-treat estimate of the experiment's results. 
+   Use feols() to run another intent-to-treat estimate of the experiment's results. 
    
    This time, though, add gender as a control, since we know there's a balance issue there.
    
    Save the result as model2.
-  CorrectAnswer: model2 <- lm(next_purchase ~ assigned_coupon + gender, data = df)
-  AnswerTests: ifelse(exists('model2'),cor(predict(model2), predict(lm(next_purchase ~ assigned_coupon + gender, data = df)))> .99, FALSE)
+  CorrectAnswer: model2 <- feols(next_purchase ~ assigned_coupon + gender, data = df)
+  AnswerTests: ifelse(exists('model2'),class(model2) == 'fixest' & cor(predict(model2), predict(feols(next_purchase ~ assigned_coupon + gender, data = df)))> .99, FALSE)
   Hint: Regress next_purchase on assigned_coupon and gender, using lm.
 
 - Class: cmd_question
-  Output: Use export_summs() to look at model1 and model2. This time, add robust standard errors, since we might expect variance of next_purchase to differ by gender or coupon assignment.
-  CorrectAnswer: export_summs(model1,model2, robust = TRUE)
-  AnswerTests: omnitest(correctExpr='export_summs(model1,model2, robust = TRUE)')
-  Hint: Send both model1 and model2 to export_summs() with the robust = TRUE option
+  Output: Use etable() to look at model1 and model2. This time, add robust standard errors, since we might expect variance of next_purchase to differ by gender or coupon assignment.
+  CorrectAnswer: etable(model1,model2, se = "hetero")
+  AnswerTests: omnitest(correctExpr='etable(model1,model2, se = "hetero")')
+  Hint: Send both model1 and model2 to table() with the se = 'hetero' option
 
 - Class: cmd_question
   Output: |-
@@ -338,16 +334,14 @@
   Output: |-
    First, let's see what kinds of problems we might get by using actual treatment when we know compliance isn't right.
    
-   Repeat the model you had for model2 but use sent_coupon instead of assigned_coupon. Save the result as model3.
-  CorrectAnswer: model3 <- lm(next_purchase ~ sent_coupon + gender, data = df)
-  AnswerTests: ifelse(exists('model3'),cor(predict(model3), predict(lm(next_purchase ~ sent_coupon + gender, data = df)))> .99, FALSE)
-  Hint: Regress next_purchase on sent_coupon and gender using lm_robust.
+   Use feols() to repeat the model you had for model2 but use sent_coupon instead of assigned_coupon. Save the result as model3.
+  CorrectAnswer: model3 <- feols(next_purchase ~ sent_coupon + gender, data = df)
+  AnswerTests: ifelse(exists('model3'),class(model3) == 'fixest' & cor(predict(model3), predict(feols(next_purchase ~ sent_coupon + gender, data = df)))> .99, FALSE)
+  Hint: Regress next_purchase on sent_coupon and gender using feols.
 
 - Class: cmd_question
   Output: |-
    Now, use two-stage least squares to adjust the effect of sent_coupon using how effective assigned_coupon was at actually increasing received-coupon rates.
-   
-   We can do this with feols from the fixest package instead of lm.
    
    Type help(feols) to see the syntax for two-stage least squares in feols.
   CorrectAnswer: help(feols)
@@ -368,9 +362,9 @@
 
 - Class: cmd_question
   Output: |-
-   Use export_summs to look at models 1, 2, 3, and 4 and see what our various calculations got us (keeping in mind we never implemented an attrition fix). Keep the robust = TRUE option.
+   Use etable to look at models 1, 2, 3, and 4 and see what our various calculations got us (keeping in mind we never implemented an attrition fix). Keep the se = "hetero" option.
    
    For the record, the "true" effect of treatment was 20.
-  CorrectAnswer: export_summs(model1,model2,model3,model4, robust = TRUE)
-  AnswerTests: omnitest(correctExpr='export_summs(model1,model2,model3,model4, robust = TRUE)')
-  Hint: Just pass model1, model2, model3, and model4 to export_summs, including robust = TRUE.
+  CorrectAnswer: etable(model1,model2,model3,model4, se = "hetero")
+  AnswerTests: omnitest(correctExpr='etable(model1,model2,model3,model4, se = "hetero")')
+  Hint: Just pass model1, model2, model3, and model4 to etable, including se="hetero".
