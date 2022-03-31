@@ -248,7 +248,7 @@
 
 - Class: cmd_question
   Output: |-
-   Finally, use coefplot() to plot ols, iv1, and iv2. 
+   Finally, use coefplot() to plot ols, iv1, and iv2. Remember, coefplot doesn't just take the model names itself, it takes a list() of model names.
    
    Take note not just of how the coefficient changes, but also the confidence intervals do. IV is a lot less precise! Although predicting the endogenous variable better (as we do with the addition of the second instrument) helps a lot.
   CorrectAnswer: coefplot(ols,iv1,iv2)

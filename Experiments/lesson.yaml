@@ -154,6 +154,7 @@
 - Class: cmd_question
   Output: |-
    Use vtable() to look at the data that has been generated.
+  CorrectAnswer: vtable(df)
   AnswerTests: any_of_exprs('vtable(df)', 'vt(df)')
   Hint: Just send df to vtable()
 
@@ -367,4 +368,4 @@
    For the record, the "true" effect of treatment was 20.
   CorrectAnswer: etable(model1,model2,model3,model4, se = "hetero")
   AnswerTests: omnitest(correctExpr='etable(model1,model2,model3,model4, se = "hetero")')
-  Hint: Just pass model1, model2, model3, and model4 to etable, including se="hetero".
+  Hint: Just pass model1, model2, model3, and model4 to etable, including s.
