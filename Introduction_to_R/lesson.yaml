@@ -363,7 +363,7 @@
    
    Use select() to pick only the columns Species, Sepal.Length, and Petal.Length from iris.
   CorrectAnswer: iris %>% select(Species, Sepal.Length, Petal.Length)
-  AnswerTests: omnitest(correctVal=iris %>% select(Species, Sepal.Length, Petal.Length)); expr_uses_func('select')
+  AnswerTests: omnitest(correctVal=iris %>% select(Species, Sepal.Length, Petal.Length))
   Hint: The first argument for select() is the data frame (either put in directly or passed via pipe). Then just list the variables you want.
 
 - Class: cmd_question
