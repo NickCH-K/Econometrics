@@ -83,7 +83,7 @@
 
     Modify this command to search for "sourdough bread" and "cereal". Save the resulting list of objects as trends
   CorrectAnswer: trends <- gtrends(c("sourdough bread", "cereal"), time = "2020-01-01 2020-08-01", geo = "US")
-  AnswerTests: any_of_exprs('trends <- gtrends(c("sourdough bread", "cereal"), time = "2020-01-01 2020-08-01", geo = "US")', 'trends <- gtrends(c("cereal", "sourdough bread"), time = "2020-01-01 2020-08-01", geo = "US")')
+  AnswerTests: ifelse(exists('trends'),sum(names(trends) %in% c("interest_over_time", "interest_by_country", "interest_by_region", "interest_by_dma", "interest_by_city", "related_topics", "related_queries"  )) == 7, FALSE)
   Hint: Remember to use 'trends <-' to save the list
   
 
