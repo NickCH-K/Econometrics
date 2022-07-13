@@ -261,7 +261,7 @@
   Hint: Plug maleTRUE = 1 into the equation and see what the slope of extraversion is.
 
 - Class: exact_question
-  Output: What is the probability that a man with an extraversion score of 0 volunteers?
-  CorrectAnswer: .1959
+  Output: What is the probability that a man with an extraversion score of 0 volunteers? Round to the fourth decimal place.
+  CorrectAnswer: .1947
   AnswerTests: omnitest(correctVal = .1959)
   Hint: Plug maleTRUE = 1 and extraversion = 0 into the equation and see what you get!
