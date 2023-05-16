@@ -13,7 +13,7 @@
    
    This lesson will work through examples of the difference-in-differences (DiD) method.
    
-   Before starting, you should have the **tidyverse**, **haven**, **vtable**, **fixest**, **gtrendsR*, and **lubridate** packages installed. Please exit now to install these packages if you do not have them.
+   Before starting, you should have the **tidyverse**, **rio**, **vtable**, **fixest**, **gtrendsR*, and **lubridate** packages installed. Please exit now to install these packages if you do not have them.
 
 
 - Class: text
@@ -56,9 +56,9 @@
 
 - Class: cmd_question
   Output: |- 
-   Last but not least, load haven
-  CorrectAnswer: library(haven)
-  AnswerTests: omnitest(correctExpr='library(haven)')
+   Last but not least, load rio
+  CorrectAnswer: library(rio)
+  AnswerTests: omnitest(correctExpr='library(rio)')
   Hint: Take the name of the package and feed that to the library() function.
 
 - Class: mult_question
@@ -128,10 +128,10 @@
   
     Next, add a logical dummy variable to trends_time named post_treatment equal to TRUE when date is greater than or equal to 2020-03-18, the first state lockdown order
   
-    Note - you should use as.Date("2020-03-18") so that R knows you are working with a date value.
-  CorrectAnswer: trends_time <- trends_time %>% mutate(post_treatment = date >= as.Date("2020-03-18"))
-  AnswerTests: cor(trends_time[['post_treatment']], trends_time[['date']] >= as.Date("2020-03-18")) > .99
-  Hint: Your mutate code should read mutate(post_treatment = date >= as.Date("2020-03-18"))
+    Note - you should use ymd("2020-03-18") (ymd() is a function in the lubridate package) so that R knows you are working with a date value, and the original variable is in year-month-day form.
+  CorrectAnswer: trends_time <- trends_time %>% mutate(post_treatment = date >= ymd("2020-03-18"))
+  AnswerTests: cor(trends_time[['post_treatment']], trends_time[['date']] >= ymd("2020-03-18")) > .99
+  Hint: Your mutate code should read mutate(post_treatment = date >= ymd("2020-03-18"))
 
 
 - Class: cmd_question
@@ -157,10 +157,10 @@
    
    Visualize the effect using this command and look at the Plots display in RStudio
    
-   ggplot(trends_time, aes(x=date, y=hits, color = keyword)) + geom_line() + geom_vline(xintercept = as.Date("2020-03-18"))
+   ggplot(trends_time, aes(x=date, y=hits, color = keyword)) + geom_line() + geom_vline(xintercept = ymd("2020-03-18"))
 
-  CorrectAnswer: ggplot(trends_time, aes(x=date, y=hits, color = keyword)) + geom_line() + geom_vline(xintercept = as.Date("2020-03-18"))
-  AnswerTests: omnitest(correctExpr='ggplot(trends_time, aes(x=date, y=hits, color = keyword)) + geom_line() + geom_vline(xintercept = as.Date("2020-03-18"))')
+  CorrectAnswer: ggplot(trends_time, aes(x=date, y=hits, color = keyword)) + geom_line() + geom_vline(xintercept = ymd("2020-03-18"))
+  AnswerTests: omnitest(correctExpr='ggplot(trends_time, aes(x=date, y=hits, color = keyword)) + geom_line() + geom_vline(xintercept = ymd("2020-03-18"))')
   Hint: Just copy the code!
 
 - Class: text
@@ -183,16 +183,16 @@
     
 - Class: cmd_question
   Output: |- 
-    Type eitc<-read_dta("https://github.com/CausalReinforcer/Stata/raw/master/eitc.dta") to load data on a sample of women and their labor supply decisions
+    Type eitc <- import("https://github.com/CausalReinforcer/Stata/raw/master/eitc.dta") to load data on a sample of women and their labor supply decisions
 
-    Note that read_dta is from the haven package.
-  CorrectAnswer: eitc<-read_dta("https://github.com/CausalReinforcer/Stata/raw/master/eitc.dta")
-  AnswerTests: omnitest(correctExpr='eitc<-read_dta("https://github.com/CausalReinforcer/Stata/raw/master/eitc.dta")')
+    Note that import() is from the rio package.
+  CorrectAnswer: eitc <- import("https://github.com/CausalReinforcer/Stata/raw/master/eitc.dta")
+  AnswerTests: omnitest(correctExpr='eitc <- import("https://github.com/CausalReinforcer/Stata/raw/master/eitc.dta")')
   Hint: Just type the code in!
 
 - Class: cmd_question
   Output: |- 
-    Summarize the eitc tibble using vtable
+    Explore the eitc tibble using vtable
 
   CorrectAnswer: vtable::vtable(eitc)
   AnswerTests: omnitest(correctExpr='vtable::vtable(eitc)')

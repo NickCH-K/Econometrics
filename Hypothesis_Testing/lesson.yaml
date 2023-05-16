@@ -57,7 +57,7 @@
    
    mutate(Y = 5 + 3*X + rnorm(300))
    
-   And the true data generating process looks like
+   And the true data generating process for a linear relationship looks like
    
    Y = beta0 + beta1*X + error
 
@@ -210,9 +210,9 @@
 
 - Class: mult_question
   Output: What is the standard error on the coefficient on longitude?
-  AnswerChoices: 53.90; 0.8984; 0.0063; 0.0134; 10010; 2.24e-5
+  AnswerChoices: 47.61; 0.5699; 19,066; -0.0391; 0.0088; 0.00104
   CorrectAnswer: 0.0134
-  AnswerTests: omnitest(correctVal='0.0134')
+  AnswerTests: omnitest(correctVal='0.0088')
   Hint: Standard errors in an etable() table are shown in parentheses to the right of the coefficients.
 
 - Class: cmd_question

@@ -131,7 +131,7 @@
   Hint: Copy/paste the code
 
 - Class: cmd_question
-  Output: Use feols() to regress volunteered on hair, and send the result straight to export_summs()
+  Output: Use feols() to regress volunteered on hair, and send the result straight to etable()
   CorrectAnswer: feols(volunteered~hair, data = Cowles) %>% etable()
   AnswerTests: expr_uses_func('etable')
   Hint: Regress volunteered on hair and pass the result into export_summs.

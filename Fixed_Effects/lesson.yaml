@@ -115,13 +115,13 @@
   Output: |-
    A *balanced* panel is one in which each individual shows up in every single time period.
    
-   We can check if this data is balanced by calculating nuniq (from **vtable**) for each distid, and checking that they're all 7.
+   We can check if this data is balanced by calculating n_distinct for each distid, and checking that they're all 7.
    
    Use the following code to create the variable num_years, with the number of different year values that show up for each distid.
    
-   nyrs <- mathpnl %>% group_by(distid) %>% summarize(num_years = nuniq(year)) 
-  CorrectAnswer: nyrs <- mathpnl %>% group_by(distid) %>% summarize(num_years = nuniq(year)) 
-  AnswerTests: omnitest(correctExpr='nyrs <- mathpnl %>% group_by(distid) %>% summarize(num_years = nuniq(year)) ')
+   nyrs <- mathpnl %>% group_by(distid) %>% summarize(num_years = n_distinct(year)) 
+  CorrectAnswer: nyrs <- mathpnl %>% group_by(distid) %>% summarize(num_years = n_distinct(year)) 
+  AnswerTests: omnitest(correctExpr='nyrs <- mathpnl %>% group_by(distid) %>% summarize(num_years = n_distinct(year)) ')
   Hint: Copy/paste the code.
 
 - Class: cmd_question

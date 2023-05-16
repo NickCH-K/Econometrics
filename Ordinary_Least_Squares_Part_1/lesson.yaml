@@ -24,11 +24,11 @@
 
 - Class: text
   Output: |-
-   This lesson will make use of the **tidyverse**, **vtable**, and **fixest** packages.
+   This lesson will make use of the **tidyverse**, **rio**, **vtable**, and **fixest** packages.
    
    So make sure those are installed first!
    
-   If they're not installed, you can hit Escape or type bye() to exit this course now and then install them with install.packages(c('tidyverse','vtable','fixest')) before starting back up. You can re-enter the course by typing swirl()
+   If they're not installed, you can hit Escape or type bye() to exit this course now and then install them with install.packages(c('tidyverse','rio','vtable','fixest')) before starting back up. You can re-enter the course by typing swirl()
 
 - Class: cmd_question
   Output: |- 
@@ -38,6 +38,14 @@
   CorrectAnswer: library(tidyverse)
   AnswerTests: omnitest(correctExpr='library(tidyverse)')
   Hint: Take the name of the package and feed that to the library() function.
+
+- Class: cmd_question
+  Output: |- 
+   Great! Now do rio.
+  CorrectAnswer: library(rio)
+  AnswerTests: omnitest(correctExpr='library(rio)')
+  Hint: Take the name of the package and feed that to the library() function.
+
 
 - Class: cmd_question
   Output: |- 
@@ -120,15 +128,15 @@
 
 - Class: cmd_question
   Output: |- 
-   Now put that string into the read_csv() function (from the tidyverse).
+   Now put that string into the import() function (from the rio package).
    
-   NOTE: read_csv() is different from, and usually better than, the base R function read.csv. Use read_csv, not read.csv!
+   NOTE: import() is super flexible and accepts all sorts of file formats. It also happens to be better than the base R function read.csv. Use import, not read.csv!
    
    This will read the data from the internet. However, we also need to *store* the data as an object in R.
    
    So use <- or = to save the data as df.
   CorrectAnswer: df <- read_csv('https://vincentarelbundock.github.io/Rdatasets/csv/Ecdat/USFinanceIndustry.csv')
-  AnswerTests: min(names(df)  == names(suppressMessages(suppressWarnings(read_csv('https://vincentarelbundock.github.io/Rdatasets/csv/Ecdat/USFinanceIndustry.csv'))))) == 1
+  AnswerTests: min(names(df)  == names(suppressMessages(suppressWarnings(import('https://vincentarelbundock.github.io/Rdatasets/csv/Ecdat/USFinanceIndustry.csv'))))) == 1
   Hint: |- 
    We know we can store objects using the format
    
