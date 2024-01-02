@@ -10,3 +10,12 @@
       # variables when appropriate. The answer test, creates_new_var()
       # can be used for for the purpose, but it also re-evaluates the
       # expression which the user entered, so care must be taken.
+
+check_equality_of_vector = function(vec) {
+  e = get('e', parent.frame())
+  if (length(vec) != length(e$val)) {
+    return(FALSE)
+  }
+  return(all(vec == e$val))
+}
+

@@ -173,7 +173,7 @@
    
    Use indexing to get the third and fifth elements of my_vec.
   CorrectAnswer: my_vec[c(3,5)]
-  AnswerTests: omnitest(correctVal=my_vec[c(3,5)])
+  AnswerTests: omnitest(correctExpr='my_vec[c(3,5)]')
   Hint: c(3,5) gives you a vector with 3 and 5 in it. Feed that into square brackets following my_vec to get the third and fifth elements of my_vec.
 
 - Class: cmd_question
@@ -184,7 +184,7 @@
    
    Use this method to get the first, third, and fifth elements of my_vec.
   CorrectAnswer: my_vec[c(TRUE,FALSE,TRUE,FALSE,TRUE)]
-  AnswerTests: omnitest(correctVal=my_vec[c(TRUE,FALSE,TRUE,FALSE,TRUE)])
+  AnswerTests: omnitest(correctExpr='my_vec[c(TRUE,FALSE,TRUE,FALSE,TRUE)]')
   Hint: The vector c(TRUE,FALSE,TRUE,FALSE,TRUE) is TRUE for its first, third, and fifth elements. Feed that to the square brackets following my_vec to get its first, third, and fifth elements.
 
 - Class: cmd_question
@@ -277,7 +277,7 @@
    
    Use pull() to get the Petal.Length variable out of iris.
   CorrectAnswer: pull(iris, Petal.Length)
-  AnswerTests: omnitest(correctVal=pull(iris, Petal.Length)); expr_uses_func('pull')
+  AnswerTests: check_equality_of_vector(pull(iris, Petal.Length)); expr_uses_func('pull')
   Hint: Make iris the first argument of pull, and Petal.Length the second.
 
 - Class: cmd_question
@@ -290,7 +290,7 @@
    
    Use filter() to get only the rows of iris for which Species is 'virginica'. Species is a string variable so you'll need those quotes around Virginica.
   CorrectAnswer: filter(iris, Species == 'virginica')
-  AnswerTests: omnitest(correctVal=filter(iris, Species == 'virginica')); expr_uses_func('filter')
+  AnswerTests: check_equality_of_data(filter(iris, Species == 'virginica')); expr_uses_func('filter')
   Hint: filter() takes iris as the first argument, and the logical statement Species == 'virginica' as the second argument.
 
 
@@ -318,7 +318,7 @@
    iris %>%
    
    pull(Sepal.Length) 
-  AnswerTests: omnitest(correctVal= iris %>% pull(Sepal.Length)) ; expr_uses_func('`%>%`'); expr_uses_func('pull')
+  AnswerTests: check_equality_of_vector(iris %>% pull(Sepal.Length)) ; expr_uses_func('`%>%`'); expr_uses_func('pull')
   Hint: Follow the pipe code from the last question, but change what you're pulling.
 
    
@@ -363,7 +363,7 @@
    
    Use select() to pick only the columns Species, Sepal.Length, and Petal.Length from iris.
   CorrectAnswer: iris %>% select(Species, Sepal.Length, Petal.Length)
-  AnswerTests: omnitest(correctVal=iris %>% select(Species, Sepal.Length, Petal.Length))
+  AnswerTests: check_equality_of_data(iris %>% select(Species, Sepal.Length, Petal.Length))
   Hint: The first argument for select() is the data frame (either put in directly or passed via pipe). Then just list the variables you want.
 
 - Class: cmd_question
