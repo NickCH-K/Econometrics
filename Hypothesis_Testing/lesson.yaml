@@ -233,7 +233,7 @@
    
    The first argument in wald is the regression object. The second is a string vector of the names of the variables you want to compare to 0.
   CorrectAnswer: wald(wind_reg, 'long')
-  AnswerTests: omnitest(correctVal="wald(wind_reg, 'long')")
+  AnswerTests: omnitest(correctExpr="wald(wind_reg, 'long')")
   Hint: Make the first argument wind_reg and the second 'long'.
 
 - Class: cmd_question
@@ -250,12 +250,12 @@
    
    mymodel %>% glht('X = 10') %>% summary()
   CorrectAnswer: wind_reg %>% glht('long = 5') %>% summary()
-  AnswerTests: omnitest(correctVal="wind_reg %>% glht('long = 5') %>% summary()")
+  AnswerTests: omnitest(correctExpr="wind_reg %>% glht('long = 5') %>% summary()")
   Hint: Take wind_reg, pass that with a pipe to glht with the argument 'long = 5', then pass that through another pipe to summary().
 
 - Class: cmd_question
   Output: |-
    What if we have heteroskedasticity? Rerun your code from the previous step, but instead of sending wind_reg directly, take your wind_reg code feols(wind~long, data = storms) and add a vcov = 'hetero' option to estimate heteroskedasticity-robust standard errors.
   CorrectAnswer: feols(wind~long, data = storms, vcov = 'hetero') %>% glht('long = 5') %>% summary()
-  AnswerTests: omnitest(correctVal="feols(wind~long, data = storms, vcov = 'hetero') %>% glht('long = 5') %>% summary()")
+  AnswerTests: omnitest(correctExpr="feols(wind~long, data = storms, vcov = 'hetero') %>% glht('long = 5') %>% summary()")
   Hint: Copy/paste your answer from the previous step. Then replace wind_reg with feols(wind~long, data = storms). Then, after data = storms, add vcov = 'hetero'.

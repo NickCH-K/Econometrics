@@ -173,7 +173,7 @@
    
    Then, specify data = mtcars, since you're using the mtcars data set.
   CorrectAnswer: feols(mpg~hp, data = mtcars)
-  AnswerTests: omnitest(correctVal=feols(mpg~hp, data = mtcars))
+  AnswerTests: omnitest(correctExpr='feols(mpg~hp, data = mtcars)')
   Hint: feols() takes two arguments here. The first is mpg~hp. Then put a comma to separate the arguments. Then data = mtcars.
 
 - Class: exact_question
@@ -241,7 +241,7 @@
    
    ggplot(mtcars, aes(x = xaxisvariable, y = yaxisvariable)) + geom_point() + geom_smooth(method = 'lm')
   CorrectAnswer: ggplot(mtcars, aes(x = hp, y = mpg)) + geom_point() + geom_smooth(method = 'lm')
-  AnswerTests: omnitest(correctVal=ggplot(mtcars, aes(x = hp, y = mpg)) + geom_point() + geom_smooth(method = 'lm'))
+  AnswerTests: omnitest(correctExpr="ggplot(mtcars, aes(x = hp, y = mpg)) + geom_point() + geom_smooth(method = 'lm')")
   Hint: Just fill in the appropriate axis values.
 
 - Class: cmd_question
@@ -277,7 +277,7 @@
 - Class: cmd_question
   Output: Put both reg2 and reg3 into etable() so you can look at the results side-by-side.
   CorrectAnswer: etable(reg2, reg3)
-  AnswerTests: omnitest(correctVal=etable(reg2, reg3))
+  AnswerTests: omnitest(correctExpr='etable(reg2, reg3)')
   Hint: Just type etable(reg2, reg3)
 
 - Class: mult_question

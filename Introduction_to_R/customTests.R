@@ -19,3 +19,7 @@ check_equality_of_vector = function(vec) {
   return(all(vec == e$val))
 }
 
+check_equality_of_data = function(dat) {
+  e = get('e', parent.frame())
+  return(identical(dat, e$val))
+}

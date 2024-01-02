@@ -116,7 +116,7 @@
 
 
   CorrectAnswer: ggplot(MedExp, aes(x = med)) + geom_density()
-  AnswerTests: omnitest(correctVal=ggplot(MedExp, aes(x = med)) + geom_density())
+  AnswerTests: omnitest(correctExpr='ggplot(MedExp, aes(x = med)) + geom_density()')
   Hint: Just copy/paste in the ggplot code.
 
 - Class: cmd_question
@@ -131,7 +131,7 @@
    
    Notice this uses the MedExp data and plots a scatterplot (geom_point()) with age on the x axis and med on the y axis.
   CorrectAnswer: ggplot(MedExp, aes(x = age, y = med)) + geom_point()
-  AnswerTests: omnitest(correctVal=ggplot(MedExp, aes(x = age, y = med)) + geom_point())
+  AnswerTests: omnitest(correctExpr='ggplot(MedExp, aes(x = age, y = med)) + geom_point()')
   Hint: Copy/paste the ggplot code.
 
 - Class: cmd_question
@@ -142,7 +142,7 @@
    
    The only change from the last code is that the y axis has the log of med, not med itself
   CorrectAnswer: ggplot(MedExp, aes(x = age, y = log(med))) + geom_point()
-  AnswerTests: omnitest(correctVal=ggplot(MedExp, aes(x = age, y = log(med))) + geom_point())
+  AnswerTests: omnitest(correctExpr='ggplot(MedExp, aes(x = age, y = log(med))) + geom_point()')
   Hint: Copy/paste the ggplot code.
 
 - Class: cmd_question
@@ -181,7 +181,7 @@
 - Class: cmd_question
   Output: Use etable() to look at the regression results.
   CorrectAnswer: etable(med_age)
-  AnswerTests: omnitest(correctVal=etable(med_age))
+  AnswerTests: omnitest(correctExpr='etable(med_age)')
   Hint: Just type etable(med_age).
 
 - Class: mult_question
@@ -200,7 +200,7 @@
    
    Use the predict() function with med_age to get the predicted values.
   CorrectAnswer: predict(med_age)
-  AnswerTests: omnitest(correctVal=predict(med_age))
+  AnswerTests: check_equality_of_vector(correctVal=predict(med_age))
   Hint: Use med_age with the predict() function.
 
 - Class: cmd_question
@@ -246,7 +246,7 @@
    
    ggplot(MedExp, aes(x = age, y = pred)) + geom_point()
   CorrectAnswer: ggplot(MedExp, aes(x = age, y = pred)) + geom_point()
-  AnswerTests: omnitest(correctVal=ggplot(MedExp, aes(x = age, y = pred)) + geom_point())
+  AnswerTests: omnitest(correctExpr='ggplot(MedExp, aes(x = age, y = pred)) + geom_point()')
   Hint: Just copy the ggplot code.
 
 - Class: text
@@ -313,7 +313,7 @@
   Output: |-
    Look at the regression with etable() to see that the coefficient on X is indeed much higher than .2.
   CorrectAnswer: etable(biased_reg)
-  AnswerTests: omnitest(correctVal=etable(biased_reg))
+  AnswerTests: omnitest(correctExpr='etable(biased_reg)')
   Hint: Take biased_reg and send it to etable().
 
 - Class: cmd_question
@@ -321,7 +321,7 @@
    
    ggplot(tb, aes(x = xaxisvariable, y = yaxisvariable)) + geom_point() + geom_smooth(method = 'lm')
   CorrectAnswer: ggplot(tb, aes(x = X, y = Y)) + geom_point() + geom_smooth(method = 'lm')
-  AnswerTests: omnitest(correctVal=ggplot(tb, aes(x = X, y = Y)) + geom_point() + geom_smooth(method = 'lm'))
+  AnswerTests: omnitest(correctExpr="ggplot(tb, aes(x = X, y = Y)) + geom_point() + geom_smooth(method = 'lm')")
   Hint: Fill in X for xaxisvariable and Y for yaxisvariable, and tb for the data.
 
 - Class: mult_question
@@ -337,7 +337,7 @@
    
    This will only fix the heteroskedasticity, not the endogeneity, but run etable() again, this time with vcov = 'hetero'.
   CorrectAnswer: etable(biased_reg, vcov = 'hetero')
-  AnswerTests: omnitest(correctVal=etable(biased_reg, vcov = 'hetero'))
+  AnswerTests: omnitest(correctExpr="etable(biased_reg, vcov = 'hetero')")
   Hint: It's the same etable() code you already used, but with the vcov = 'hetero' option.
 
 - Class: text

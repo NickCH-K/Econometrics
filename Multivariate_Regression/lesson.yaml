@@ -142,7 +142,7 @@
 - Class: cmd_question
   Output: Use coefplot(list(model1,model2)) to see all of the coefficients in both biv and multi2, and examine how much the coefficient on sleep hours is changed by adding the controls.
   CorrectAnswer: coefplot(list(biv, multi2))
-  AnswerTests: omnitest(correctVal=coefplot(list(biv, multi2)))
+  AnswerTests: omnitest(correctExpr='coefplot(list(biv, multi2))')
   Hint: use coefplot(). In that coefplot(), put a list, like coefplot(list()). Then in that list, put biv and multi2.
 
 - Class: cmd_question

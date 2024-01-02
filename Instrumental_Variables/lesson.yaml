@@ -154,9 +154,9 @@
 
 - Class: mult_question
   Output: Assuming that our instrument is relevant and valid, how can we best interpret the -1.08 coefficient?
-  AnswerChoices: A 1% increase in rprice driven by tax increases will decrease packs sold by 1.08%; On average, a 1% increase in rprice will decrease packs sold by 1.08%
+  AnswerChoices: A 1% increase in price driven by tax increases will decrease packs sold by 1.08%; On average, a 1% increase in rprice will decrease packs sold by 1.08%
   CorrectAnswer: A 1% increase in rprice driven by tax increases will decrease packs sold by 1.08%
-  AnswerTests: omnitest(correctVal='A 1% increase in rprice driven by tax increases will decrease packs sold by 1.08%')
+  AnswerTests: omnitest(correctVal='A 1% increase in price driven by tax increases will decrease packs sold by 1.08%')
   Hint: IV isolates only the part of the treatment variation that is driven by the instrument
 
 - Class: mult_question
@@ -170,7 +170,7 @@
 - Class: cmd_question
   Output: Get the "first stage" model from the iv1 object using summary(iv1, stage = 1), showing the impact of the instrument on the endogenous variable. (note iv1$iv_first_stage would also work)
   CorrectAnswer: summary(iv1, stage = 1)
-  AnswerTests: omnitest(correctVal='summary(iv1, stage = 1)')
+  AnswerTests: omnitest(correctExpr='summary(iv1, stage = 1)')
   Hint: Use Just send iv1 to the summary() function, and add the stage = 1 option.
 
 - Class: mult_question
@@ -204,7 +204,7 @@
 - Class: cmd_question
   Output: This time, let's find the first-stage F statistic in a different way. Send your iv2 model to the fitstat function, with the type = 'ivf' option. fitstat is a flexible function that will help us get other statistics from our model, too.
   CorrectAnswer: fitstat(iv2, type = 'ivf')
-  AnswerTests: omnitest(correctVal='fitstat(iv2, type = "ivf")')
+  AnswerTests: omnitest(correctExpr='fitstat(iv2, type = "ivf")')
   Hint: Call the fitstat() function with the first argument of iv2 and the second argument of type = 'ivf'.
 
 - Class: mult_question
@@ -223,7 +223,7 @@
 - Class: cmd_question
   Output: Use fitstat to find the results of the overidentification test.
   CorrectAnswer: fitstat(iv2, 'sargan')
-  AnswerTests: omnitest(correctVal='fitstat(iv2, "sargan")')
+  AnswerTests: omnitest(correctExpr='fitstat(iv2, "sargan")')
   Hint: Call the fitstat() function with the first argument of iv2 and the second argument of type = 'sargan'.
 
 - Class: mult_question

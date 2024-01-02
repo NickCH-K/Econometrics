@@ -246,7 +246,7 @@
    
    to get the average index and average predicted response by sex.
   CorrectAnswer: TitanicSurvival %>% group_by(sex) %>% summarize(index = mean(index_predict), resp = mean(response_predict))
-  AnswerTests: omnitest(correctVal='TitanicSurvival %>% group_by(sex) %>% summarize(index = mean(index_predict), resp = mean(response_predict))')
+  AnswerTests: check_equality_of_data('TitanicSurvival %>% group_by(sex) %>% summarize(index = mean(index_predict), resp = mean(response_predict))')
   Hint: We have TitanicSurvival, group_by(sex), and the summarize() function above. Link the three of them with pipes %>%
 
 - Class: text

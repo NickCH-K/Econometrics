@@ -169,7 +169,7 @@
   Output: |- 
    Use etable on your regression output to look at the results
   CorrectAnswer: etable(model_1)
-  AnswerTests: omnitest(correctVal='etable(model_1)')
+  AnswerTests: omnitest(correctExpr='etable(model_1)')
   Hint:
   
 - Class: mult_question
