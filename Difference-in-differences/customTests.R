@@ -1,12 +1,12 @@
-check_equality_of_vector = function(correctVal = vec) {
+check_equality_of_vector = function(correctVal) {
   e = get('e', parent.frame())
-  if (length(vec) != length(e$val)) {
+  if (length(correctVal) != length(e$val)) {
     return(FALSE)
   }
-  return(all(vec == e$val))
+  return(all(correctVal == e$val))
 }
 
-check_equality_of_data = function(correctVal = dat) {
+check_equality_of_data = function(correctVal) {
   e = get('e', parent.frame())
-  return(identical(dat, e$val))
+  return(identical(correctVal, e$val))
 }
