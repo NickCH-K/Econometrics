@@ -32,7 +32,7 @@
 
 - Class: cmd_question
   Output: Now load the fixest package.
-  CorrectAnswer: library(jtools)
+  CorrectAnswer: library(fixest)
   AnswerTests: omnitest(correctExpr='library(fixest)')
   Hint: Just type library(fixest)
 
@@ -157,7 +157,7 @@
 - Class: cmd_question
   Output: Now, this graph isn't showing the curviest line I've ever seen, but it has curves! We may want a polynomial here. Use feols to egress volunteered on extraversion, and, using I(), extraversion squared. Store the result as m2.
   CorrectAnswer: m2 <- feols(volunteered ~ extraversion + I(extraversion^2), data = Cowles)
-  AnswerTests: ifelse(exists('m2'), class(m2) == 'fixest' &  (sum(c('extraversion', 'I(extraversion^2)') %in% names(coef(m2))) == 2) & (length(coef(m2)) == 3),FALSE)
+  AnswerTests: ifelse(exists('m2'), class(m2) == 'fixest' &  (sum(c('extraversion', 'I(extraversion^2)','I(I(extraversion^2))') %in% names(coef(m2))) == 2) & (length(coef(m2)) == 3),FALSE)
   Hint: You can add a squared term to a regression with I(varname^2). Don't forget to include extraversion by itself, too! You always want the lower-order terms too when doing a polynomial.
 
 - Class: cmd_question
